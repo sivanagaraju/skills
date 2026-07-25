@@ -1,0 +1,46 @@
+[
+  {
+    "id": "q1",
+    "part": "prerequisites",
+    "tag": "Warm-up · sets",
+    "anchor": "PREREQUISITES.md#p1-sets",
+    "prompt": "A set is best thought of as:",
+    "options": [
+      {"key": "A", "text": "A probability number"},
+      {"key": "B", "text": "A bag of distinct things with clear in/out membership"},
+      {"key": "C", "text": "A neural network layer"},
+      {"key": "D", "text": "Always infinite"}
+    ],
+    "answer": "B",
+    "whyCorrect": "Sets are bags of distinct members — membership is only in or out.",
+    "whyOthers": {
+      "A": "Probability sizes come later.",
+      "C": "Networks are models, not the definition of a set.",
+      "D": "Finite bags (die faces) are valid sets."
+    },
+    "diagram": "  Bag S = { red, blue, green }\n  yellow in S? NO",
+    "useLater": "Domain X and sample space Omega are sets."
+  },
+  {
+    "id": "q2",
+    "part": "notes",
+    "tag": "Lecture · Core idea",
+    "anchor": "NOTES.md#executive-summary--the-whole-lecture-in-one-map",
+    "prompt": "Replace this with a question from THIS video NOTES spine.",
+    "options": [
+      {"key": "A", "text": "Placeholder A"},
+      {"key": "B", "text": "Placeholder correct"},
+      {"key": "C", "text": "Placeholder C"},
+      {"key": "D", "text": "Placeholder D"}
+    ],
+    "answer": "B",
+    "whyCorrect": "Author must rewrite from NOTES.md for the real video.",
+    "whyOthers": {
+      "A": "Rewrite for the real lecture.",
+      "C": "Rewrite for the real lecture.",
+      "D": "Rewrite for the real lecture."
+    },
+    "diagram": "  lecture arc → take-home",
+    "useLater": "Connect to ML use of this idea."
+  }
+]
