@@ -63,5 +63,5 @@ Use real anchors that exist in **this** video’s `PREREQUISITES.md`.
 ## Anti-pattern (do not use as structure template)
 
 The educative Dynamo sample (`amazon_dynamodb_paper_explained*`) is **depth/prose inspiration only**.  
-It uses **31 rigid 3-minute topics** — that is **forbidden** micro-chunking for this skill (need **6–10** map boxes).  
+It uses **31 rigid 3-minute topics** — that is **forbidden** micro-chunking for this skill (need **4–10** map boxes from architecture, not clock slices).  
 Quality bar for **structure:** an existing package built under this skill that has been verified against the current contract, **not** the Dynamo 31-topic HTML.

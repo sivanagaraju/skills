@@ -318,7 +318,7 @@ In lecture words: hidden path = f, three sightings = data D, night 10 = new x.
 
 - Prefer **depth on the main thread** over covering every aside  
 - Soft target: clear prose + diagrams that a smart beginner can finish without rewatching every minute  
-- Long video (~60–70 min): still **6–10 topics**, but **richer prose** in the hard middle topics (measure, triplet, RV)  
+- Long video (~60–70 min): stay within **4–10** topics — prefer **richer prose** in hard middle topics over inventing extra boxes for repetition  
 - `validate_package.py` soft-floors ~40 words × topic duration (minutes) — treat under-floor as “too thin,” not as a request to pad with filler  
 
 ---

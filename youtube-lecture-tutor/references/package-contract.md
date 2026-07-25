@@ -22,14 +22,14 @@ NN-short-slug/
     captions… questions.json …
 ```
 
-Agent-only completeness artifacts (`raw/claims/`, coverage checklist) are **required for new packages**: set `requires_claim_mining: true` in `metadata.json` (transcript-mining.md). They are not student-facing.
+Agent-only completeness artifacts (`raw/claims/`, coverage checklist) are **required by default** (see `metadata-schema.md` + `transcript-mining.md`). Soft WARN only when `package_status` is `"legacy"`. Not student-facing.
 
 ## Roles (do not blur)
 
 | File | Job | Anti-job |
 |------|-----|----------|
 | PREREQUISITES | Unlock 3–6 words/ideas needed to read the master map | Full lecture retelling |
-| NOTES | Master architecture + 6–10 topics + screenshots + bridges | Flat essay without map |
+| NOTES | Master architecture + 4–10 topics (map/claims) + screenshots + bridges | Flat essay without map |
 | quiz | Prove warm-up + map/topics stuck | Quiz on only one file |
 
 ## Style bar

@@ -1,14 +1,12 @@
 ---
 name: youtube-lecture-tutor
 description: >
-  Canonical skill for YouTube lecture study packages (math/ML/Code/softwareengineering/softskills/communication): detailed
-  PREREQUISITES.md, then NOTES.md as educative-style blog (TOC, Executive Summary
-  with an architecture blueprint (one whole-video ASCII map), 6-10 topics with map/screenshot/prose/analogy/
-  ASCII/bridge). Writing quality is mandatory: continuous tutor prose, not bullet
-  slide-deck notes; see tutor-voice + writing-examples. Dual quiz Part A/B.
-  Content-type depth knobs; optional Apply-it for non-math. Web search links;
-  HIL if needed; confidence report. Triggers: lecture URL, extract study package,
-  MFML next video.
+  Canonical skill for YouTube lecture study packages (math/ML/code/software/soft-skills):
+  PREREQUISITES.md, then NOTES.md (TOC, architecture Executive Summary, 4-10 topics
+  from map/claim clusters with map/screenshot/prose/analogy/ASCII/bridge), dual quiz Part A/B.
+  Claim-mine before NOTES (default required). Writing quality mandatory (tutor-voice).
+  Triggers: lecture URL, extract lecture, study package, prereqs notes quiz, MFML next,
+  /youtube-lecture-tutor. Only skill for full lecture packages.
 ---
 
 # YouTube Lecture Tutor
@@ -22,31 +20,37 @@ PREREQUISITES.md  →  NOTES.md  →  quiz.html
 Study path for the student:
 
 ```
-warm-up → master architecture map → topics (each box on the map)
+warm-up → architecture Executive Summary → topics (each box on the map)
        → external links → (optional apply scenarios) → quiz
 ```
 
 ---
 
-## Load references (strict order)
+## Load references (staged)
 
-1. `references/output-blog-contract.md` — **NOTES + PREREQS law**  
-2. `references/tutor-voice.md` — **writing quality (critical)**  
-3. `references/writing-examples.md` — bad→good calibration  
-4. `references/executive-summary-architecture.md` — **Exec Summary = architecture blueprint (mandatory)**  
-5. `references/package-contract.md` — folder files  
-6. `references/topic-planning.md` — 6–10 topics + frame priorities by type  
-7. `references/scenarios.md` — content-type **depth** knobs  
-8. `references/math-formatting.md` — **`$` / `$$` only**; no `\(`/`\[`; plain-English under dense formulas  
-9. `references/diagrams-and-mermaid.md` — ASCII-first + safe/banned Mermaid  
-10. `references/transcript-mining.md` — **mandatory claim sheets** from timed transcript before NOTES  
-11. `references/code-extraction.md` — when code appears  
-12. `references/production-scenarios.md` — optional “Apply it” for non-math types  
-13. `references/prerequisites-template.md`  
-14. `references/quiz-spec.md`  
-15. `references/metadata-schema.md`  
-16. `references/global-agent.md` — HIL, confidence, web search, subagents  
-17. `references/notes-connect-block.md` — header snippet only  
+**Rule:** always load the **hot core** first. Open other references only at the pipeline step that needs them.  
+All files under `references/` remain part of the skill — staging is about *when* to load, not deleting detail.
+
+### Hot core (always)
+
+1. `references/output-blog-contract.md` — NOTES + PREREQS structure law  
+2. `references/tutor-voice.md` — writing quality (establishing 80%, analogy scope, no stamps)  
+3. `references/transcript-mining.md` — claim sheets + coverage before NOTES  
+4. `references/executive-summary-architecture.md` — Exec Summary = architecture blueprint  
+
+### Staged (load when needed)
+
+| When | Open |
+|------|------|
+| Goal / folder layout | `package-contract.md`, `metadata-schema.md` |
+| Topic map + frames | `topic-planning.md`, `diagrams-and-mermaid.md` |
+| After `content_type` known | `scenarios.md` (+ `math-formatting.md` if math; `code-extraction.md` if code) |
+| Writing feels thin | `writing-examples.md` |
+| PREREQS drafting | `prerequisites-template.md` |
+| Non-math Apply-it section | `production-scenarios.md` |
+| Quiz build | `quiz-spec.md` |
+| External links / HIL / confidence | `global-agent.md` |
+| Optional header connect snippet | `notes-connect-block.md` |
 
 **Prompt library origin:** rules adapted from `educative.io/src/gemini_youtube_analyzer_v6_0.py`  
 **Do not run** that file or use Vertex/project IDs for this skill.
@@ -65,9 +69,10 @@ Do not maintain or call removed aliases (`lecture-study-package`, `youtube-blog-
 
 ## Absolute rules
 
-1. **PREREQUISITES first** — short (3–6 ideas; deeper OK for beginners), unlocks the map; not a second lecture.  
-2. **NOTES educative spine only** — TOC → Exec Summary (architecture blueprint) → 6–10 topics → External references → (optional Apply it) → Sources.  
-3. **Claim-mine before NOTES** -- for every new package, set `requires_claim_mining: true` in metadata and create timed slices + `raw/claims/topic-NN.md` + coverage checklist (`transcript-mining.md`). Never write establishing from a single skim.  
+1. **PREREQUISITES first** — default 3–6 ideas; set `beginner_prereqs: true` for 3–8 deeper warm-ups; unlocks the map; not a second lecture.  
+2. **NOTES educative spine only** — TOC → Exec Summary (architecture blueprint) → topics → External references → (optional Apply it) → Sources.  
+   **Topic count:** driven by **map boxes + claim clusters** (not clock alone). Absolute **4–10**. Soft duration guide only (topic-planning.md): dense short lectures may need more topics; long deep dives may need fewer, richer ones.  
+3. **Claim-mine before NOTES (default required)** — create timed slices + `raw/claims/topic-NN.md` + coverage checklist (`transcript-mining.md`). Set `requires_claim_mining: true` and `package_status: "current"` (or omit status). **Only** `package_status: "legacy"` softens missing artifacts to WARN. Never write establishing from a single skim.  
 4. **Each topic fixed subsections** filled with continuous prose — see `tutor-voice.md`.  
    Map · board · establishing (~80%) · analogy (~10%) · local ASCII (~10%) · bridge.  
    **Fail if establishing is only bullets or thinner than the claim sheet.**  
@@ -101,15 +106,15 @@ Do not maintain or call removed aliases (`lecture-study-package`, `youtube-blog-
    Screenshots: **per-chapter multi-frame** → **2×2 composites** (short 1 panel / long 2–3 panels of 4 tiles). Use `composites/` in NOTES Board slots; see topic-planning.md. `--frames-only` re-extracts without re-download.
    Clean ASR duplicates when building timed captions (transcript-mining.md).
 3. Classify content_type (scenarios.md)
-4. Draft master ASCII + 6–10 topic list with times (topic-planning.md)
+4. Draft architecture map + topic list with times (topic-planning.md: map/claims first; duration soft)
    → worldview arc: from ___ to ___ (required for theory/math)
    → if goal still unclear → HIL
-5. ★ CLAIM MINE (transcript-mining.md) — REQUIRED before NOTES
+5. ★ CLAIM MINE (transcript-mining.md) — required before NOTES (default ERROR if missing)
    - raw/transcript-by-topic/topic-NN.txt
    - raw/claims/topic-NN.md  (definitions, procedures, slogans, warnings, ~MM:SS)
    - raw/coverage-checklist.md (FOUND/ABSENT must-capture items)
    Mine every minute for claims; merge into topics for reading — do not drop definitions.
-6. Write PREREQUISITES.md (short warm-up; deeper OK if user is beginner; unlock map words)
+6. Write PREREQUISITES.md (3–6 ideas default; beginner_prereqs: true → up to 8; unlock map words)
 7. Write NOTES **topics** from claim sheets (output-blog-contract.md + tutor-voice.md)
    Establishing ~80% in prose (no ownership stamps); analogy = this topic only;
    ASCII for procedures (+ code/math/apply by type)
@@ -203,7 +208,7 @@ python ~/.grok/skills/youtube-lecture-tutor/scripts/validate_package.py \
   --dir "path/to/NN-slug"
 ```
 
-Fixes automated gaps inspired by educative `evaluate_blog_completeness()`: topic count 6-10, six topic slots, bullet-only establishing (ERROR), robot bridges, PREREQS deep-link integrity, Mermaid ban-list, dual-part quiz + anchors + flavor heuristic, **answer-key distribution (ERROR if all same key)**, metadata schema, soft word-count-per-minute, AI-slop phrases, ownership-stamp density WARN, and claim sheets / coverage checklist (**ERROR when `requires_claim_mining: true`; legacy WARN otherwise**) (transcript-mining.md). **Writing + coverage WARNINGs are tickets, not noise.**
+Fixes automated gaps inspired by educative `evaluate_blog_completeness()`: topic count absolute **4–10** (ERROR) with soft duration WARN, six topic slots, bullet-only establishing (ERROR), robot bridges, PREREQS deep-link integrity, Mermaid ban-list, dual-part quiz + anchors + flavor heuristic, **answer-key distribution (ERROR if all same key)**, metadata schema, soft word-count-per-minute, AI-slop phrases, ownership-stamp density WARN, claim sheets / coverage checklist (**ERROR by default**; WARN only if `package_status: "legacy"`), beginner_prereqs PREREQ idea band. **Writing + coverage WARNINGs are tickets, not noise.** Semantic teaching quality is still human/agent review — files present ≠ claims taught.
 
 ---
 
@@ -213,9 +218,9 @@ Fixes automated gaps inspired by educative `evaluate_blog_completeness()`: topic
 - [ ] `validate_package.py --dir <package>` exits 0 (fix ERRORs)
 
 ### Structure
-- [ ] PREREQUISITES short warm-up only (+ `#pN-…` anchors)  
-- [ ] NOTES: TOC + Executive Summary with master ASCII  
-- [ ] 6–10 topics; full timeline coverage  
+- [ ] PREREQUISITES warm-up only (+ `#pN-…` anchors); idea count per beginner_prereqs flag  
+- [ ] NOTES: TOC + Executive Summary architecture blueprint (ASCII boxes/arrows)  
+- [ ] Topic count **4–10** (map + claims primary; duration guide soft); full timeline coverage  
 - [ ] Each topic has all six slots  
 - [ ] Formal topics link `./PREREQUISITES.md#…` from the map slot when needed  
 - [ ] External references (2–6 real links, each mapped to a lecture topic; not generic SEO/wiki dump)  
@@ -225,8 +230,8 @@ Fixes automated gaps inspired by educative `evaluate_blog_completeness()`: topic
 - [ ] Screenshots: prefer `screenshots/composites/*` (2×2); long topics 2–3 panels  
 
 ### Completeness (as important as structure — was the historical failure mode)
-- [ ] New packages set `requires_claim_mining: true`; then `raw/claims/topic-*.md` exist for each NOTES topic (transcript-mining.md)  
-- [ ] When claim mining is required, `raw/coverage-checklist.md` is present and its worldview arc is filled  
+- [ ] Claim mining default: `raw/claims/topic-*.md` + `raw/coverage-checklist.md` required unless `package_status: "legacy"`  
+- [ ] Current packages set `requires_claim_mining: true` (explicit); coverage checklist worldview arc filled  
 - [ ] Every **Must teach** claim appears in NOTES establishing (paraphrase OK; omission fails)  
 - [ ] End-of-lecture review/homework list taught if present in transcript  
 - [ ] Board **procedures** (stacking, derivation steps, …) have ASCII in NOTES  
@@ -258,7 +263,7 @@ Fixes automated gaps inspired by educative `evaluate_blog_completeness()`: topic
 ## Done message
 
 1. Folder path  
-2. Study path: PREREQUISITES → NOTES map → topics → quiz  
+2. Study path: PREREQUISITES → NOTES architecture Exec Summary → topics → quiz  
 3. content_type + topic count + one-line whole-video point + **worldview arc**  
 4. **Coverage:** claims mined ≈ N · covered in NOTES ≈ M · gaps (if any)  
 5. External links (+ apply-scenarios yes/no)  

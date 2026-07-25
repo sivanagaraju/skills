@@ -3,7 +3,7 @@
 **Source of ideas:** `educative.io/src/gemini_youtube_analyzer_v6_0.py`  
 **Not used:** Vertex API, image-gen, forced 2 Mermaids per topic, 20–30 micro-topics.
 
-**Layout never changes.** Always: PREREQS → TOC → Exec Summary (master ASCII) → 6–10 topics → external refs → (optional apply scenarios) → sources → dual quiz.
+**Layout never changes.** Always: PREREQS → TOC → Exec Summary (architecture blueprint) → 4–10 topics (map/claims) → external refs → (optional apply scenarios) → sources → dual quiz.
 
 Classify early; put `content_type` in `metadata.json`.
 
@@ -130,7 +130,7 @@ Do not duplicate the gating table here.
 
 From analyzer depth idea, adapted:
 
-- ~30–50 min → 6–10 topics  
+- Topic count: map + claim clusters first; absolute 4–10; duration only soft (topic-planning.md)  
 - Aim roughly **60–100 words of clear prose per minute of topic** (soft; diagrams count as teaching)  
 - Prefer fewer deep topics over many shallow ones  
 - Cover full timeline by **merging** asides into map boxes, not by exploding topic count  

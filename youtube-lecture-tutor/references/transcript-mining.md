@@ -14,7 +14,7 @@ Gemini-style completeness comes from **segment Q&A on the transcript**. This fil
 ```
 ingest (timed captions + frames)
    → classify content_type
-   → master map + 6–10 topics with MM:SS
+   → master map + 4–10 topics with MM:SS (map/claims first)
    → ★ CLAIM MINE (this file)
    → PREREQUISITES
    → NOTES (establishing written FROM claim sheets)
@@ -144,7 +144,10 @@ For each topic establishing section:
 - Confirm each appears in NOTES (paraphrase OK; total omission fails).  
 - Confirm coverage-checklist FOUND items appear in NOTES.  
 - Confirm worldview arc appears in Executive Summary.  
-- When `metadata.json` sets `requires_claim_mining: true`, `validate_package.py` errors if claim sheets or the coverage checklist are missing. **Human/agent must still verify content**.
+- **Default:** `validate_package.py` **errors** if claim sheets or the coverage checklist are missing.  
+- **Legacy only:** `package_status: "legacy"` softens missing artifacts to WARN.  
+- Setting `requires_claim_mining: false` without `package_status: "legacy"` is an ERROR.  
+- Human/agent must still verify Must-teach content appears in NOTES (presence of files ≠ teaching quality).
 
 ---
 

@@ -242,7 +242,9 @@ def scan_mermaid(text: str, where: str, rep: Report) -> int:
     return len(blocks)
 
 
-def check_prerequisites(path: Path, rep: Report) -> set[str]:
+def check_prerequisites(
+    path: Path, rep: Report, metadata: dict | None = None
+) -> set[str]:
     if not path.exists():
         rep.err("PREREQUISITES.md is missing")
         return set()
@@ -251,8 +253,17 @@ def check_prerequisites(path: Path, rep: Report) -> set[str]:
 
     idea_headings = re.findall(r"^## .+$", text, re.MULTILINE)
     n_ideas = len(idea_headings)
-    if not (3 <= n_ideas <= 6):
-        rep.warn(f"PREREQUISITES.md: {n_ideas} idea sections found; spec says 3–6")
+    meta = metadata or {}
+    if meta.get("beginner_prereqs") is True:
+        lo, hi = 3, 8
+        band = "3–8 (beginner_prereqs: true)"
+    else:
+        lo, hi = 3, 6
+        band = "3–6 (default; set beginner_prereqs: true for deeper warm-ups)"
+    if n_ideas and not (lo <= n_ideas <= hi):
+        rep.warn(
+            f"PREREQUISITES.md: {n_ideas} idea sections found; guidance is {band}"
+        )
 
     # Prefer explicit anchors for connect-the-dots
     explicit = set(re.findall(r'<a id="([^"]+)"', text))
@@ -275,7 +286,12 @@ def check_prerequisites(path: Path, rep: Report) -> set[str]:
     return anchors
 
 
-def check_notes(path: Path, prereq_anchors: set[str], rep: Report) -> tuple[int, set[str]]:
+def check_notes(
+    path: Path,
+    prereq_anchors: set[str],
+    rep: Report,
+    metadata: dict | None = None,
+) -> tuple[int, set[str]]:
     if not path.exists():
         rep.err("NOTES.md is missing")
         return 0, set()
@@ -336,10 +352,35 @@ def check_notes(path: Path, prereq_anchors: set[str], rep: Report) -> tuple[int,
         cleaned.append((heading, body))
 
     n_topics = len(cleaned)
-    if not (6 <= n_topics <= 10):
-        rep.err(f"NOTES.md: {n_topics} '## Topic N:' sections found; spec requires 6–10")
+    # Hard bounds only (topic-planning.md): map/claims drive count; duration is soft.
+    hard_lo, hard_hi = 4, 10
+    if not (hard_lo <= n_topics <= hard_hi):
+        rep.err(
+            f"NOTES.md: {n_topics} '## Topic N:' sections found; "
+            f"absolute range is {hard_lo}–{hard_hi} "
+            "(map boxes + claim clusters; topic-planning.md)"
+        )
     else:
-        print(f"OK  topics: {n_topics}")
+        print(f"OK  topics: {n_topics} (absolute {hard_lo}–{hard_hi})")
+
+    # Soft duration guide — WARN only (dense short vs deep long lectures).
+    duration_min = ((metadata or {}).get("duration_seconds") or 0) / 60
+    if duration_min and hard_lo <= n_topics <= hard_hi:
+        if duration_min < 25:
+            soft_lo, soft_hi = 4, 8
+            soft_band = "often 4–8 for ~15–25 min (more if dense; fewer if one arc)"
+        elif duration_min <= 45:
+            soft_lo, soft_hi = 6, 10
+            soft_band = "often 6–10 for ~25–45 min"
+        else:
+            soft_lo, soft_hi = 7, 10
+            soft_band = "often 7–10 for ~45–90 min (deepen, do not invent boxes)"
+        if not (soft_lo <= n_topics <= soft_hi):
+            rep.warn(
+                f"NOTES.md: {n_topics} topics is outside soft duration guide "
+                f"({soft_band}). Check density: split packed claims or merge "
+                f"repetition (topic-planning.md) — not an automatic fail."
+            )
 
     for heading, body in cleaned:
         missing_slots = [s for s in TOPIC_SLOTS if f"### {s}" not in body]
@@ -710,6 +751,14 @@ def check_metadata(path: Path, rep: Report) -> dict:
         and not isinstance(data["requires_claim_mining"], bool)
     ):
         rep.err("metadata.json requires_claim_mining must be true or false")
+    status = data.get("package_status")
+    if status is not None and status not in ("legacy", "current", ""):
+        rep.warn(
+            f"metadata.json package_status '{status}' is unknown "
+            "(use \"current\" or \"legacy\")"
+        )
+    if "beginner_prereqs" in data and not isinstance(data["beginner_prereqs"], bool):
+        rep.err("metadata.json beginner_prereqs must be true or false")
     return data
 
 
@@ -877,8 +926,8 @@ def check_claim_mining(
 ) -> None:
     """
     Completeness gate: claim sheets + coverage checklist (transcript-mining.md).
-    Packages with metadata.json requires_claim_mining=true must include claim sheets and a
-    coverage checklist. Older packages retain WARNs for backward compatibility.
+    Default required (ERROR if missing). Soften only for package_status: "legacy"
+    (WARN). requires_claim_mining=false without legacy is an ERROR.
     """
     claims_dir = pkg / "raw" / "claims"
     slices_dir = pkg / "raw" / "transcript-by-topic"
@@ -887,7 +936,15 @@ def check_claim_mining(
     if notes_path.exists():
         notes_text = notes_path.read_text(encoding="utf-8", errors="replace")
 
-    claim_mining_required = metadata.get("requires_claim_mining") is True
+    # Claim mining required by default. Only package_status: "legacy" softens to WARN.
+    status = str(metadata.get("package_status") or "").strip().lower()
+    is_legacy = status == "legacy"
+    if not is_legacy and metadata.get("requires_claim_mining") is False:
+        rep.err(
+            "metadata.json: requires_claim_mining=false is only allowed when "
+            "package_status is \"legacy\""
+        )
+    claim_mining_required = not is_legacy
 
     def required_artifact_issue(message: str) -> None:
         if claim_mining_required:
@@ -1030,8 +1087,10 @@ def main() -> None:
 
     rep = Report()
     metadata = check_metadata(d / "metadata.json", rep)
-    prereq_anchors = check_prerequisites(d / "PREREQUISITES.md", rep)
-    n_topics, notes_anchors = check_notes(d / "NOTES.md", prereq_anchors, rep)
+    prereq_anchors = check_prerequisites(d / "PREREQUISITES.md", rep, metadata)
+    n_topics, notes_anchors = check_notes(
+        d / "NOTES.md", prereq_anchors, rep, metadata
+    )
     check_claim_mining(d, n_topics or 0, d / "NOTES.md", metadata, rep)
     check_questions(
         d / "raw" / "questions.json",

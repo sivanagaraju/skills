@@ -10,7 +10,7 @@ Prompt-library origin: educative `gemini_youtube_analyzer_v6_0.py` structured bl
 | Item | Rule |
 |------|------|
 | Skeleton | Educative-style (TOC → Exec Summary → Topics → External refs) |
-| Topics | **6–10** for ~30–50 min |
+| Topics | **4–10** absolute; count from map + claims (duration soft — topic-planning.md) |
 | PREREQUISITES | **Before** map — mandatory short warm-up |
 | Diagrams | **ASCII-first**; Mermaid sparse (see `diagrams-and-mermaid.md`) |
 | Connect-the-dots | Every topic points back to **one master architecture** |
@@ -19,7 +19,7 @@ Prompt-library origin: educative `gemini_youtube_analyzer_v6_0.py` structured bl
 
 ## PREREQUISITES.md
 
-- Short only (3–6 ideas; deeper OK if user is beginner)  
+- Default **3–6** ideas; with `beginner_prereqs: true` allow **3–10** (deeper warm-up)  
 - Unlocks words needed to read the master map (including FA / event / measure if the map uses them)  
 - Not a second full lecture  
 - See `prerequisites-template.md` + `tutor-voice.md` PREREQUISITES writing  
@@ -59,7 +59,7 @@ Exec Summary is the **architecture phase** of the document: reverse-engineer the
      - Load-bearing claims (5–8; not topic renames)
      - Speaker/course if known
      Fail if thin list, two-column rename only, no scenario, no boxes/arrows
-4. ## Topic N: Name (MM:SS–MM:SS)   × 6–10
+4. ## Topic N: Name (MM:SS–MM:SS)   × 4–10 (map/claims first)
 
      **Prerequisite to drafting:** claim sheet `raw/claims/topic-NN.md` from transcript-mining.md
      For EACH topic, in this order (headings fixed; **writing rules in tutor-voice.md**):

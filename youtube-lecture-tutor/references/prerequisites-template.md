@@ -1,7 +1,8 @@
 # Warm-up before the lecture (PREREQUISITES.md)
 
 > **Do this first.** Then open NOTES.md at the Executive Summary map.  
-> Keep this file **short** (roughly one screen per idea, 3–6 ideas max).
+> Keep this file **short** (roughly one screen per idea).  
+> Default **3–6** ideas. If the student needs deeper basics, set `beginner_prereqs: true` in metadata and use up to **8** ideas — still not a second full lecture.
 
 ```
   After this warm-up you can say in plain words:

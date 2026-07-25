@@ -9,12 +9,12 @@ Claims = **every teaching unit in the transcript** for **completeness**.
 1. List teacher moves in order (problem → tools → payoffs → worldview shifts)
 2. Draw ONE master ASCII (whole video point)
 3. State worldview arc: "from ___ to ___" (required for math/theory)
-4. Cluster into 6–10 topics with MM:SS ranges
+4. Cluster into map boxes with MM:SS ranges (see topic count rules below)
 5. ★ Mine claims per time range (transcript-mining.md) — do not skip
 6. Assign screenshots by type priority (below)
 ```
 
-**Critical:** “6–10 topics” means **merge for reading**, not “skip spoken definitions.”  
+**Critical:** Topic count means **merge for reading**, not “skip spoken definitions.”  
 **Mine every minute for claims; merge claims into topics.** Never drop a definition, slogan, board procedure, or end-of-lecture review list.
 
 ---
@@ -37,16 +37,57 @@ If the lecture contrasts two frameworks (deterministic vs probabilistic, physics
 
 ---
 
-## Topic count
+## Topic count (map + claims first; duration is soft)
 
-| Duration | Topics |
-|----------|--------|
-| ~20–30 min | 5–8 |
-| ~30–50 min | **6–10** |
-| ~60–90 min | still **8–10** major topics (merge harder; deepen each) |
+**One-liner:** Topic count follows the **architecture map and claim clusters**. Duration only suggests a soft range. Prefer **deeper** topics over more topics when the teacher stays on one system; prefer **more** topics when a short video installs many distinct objects.
 
-Do **not** use 20–30 micro-topics (even if some educative samples did).  
-Do **not** use few topics as an excuse for thin establishing.
+### Primary signal — map architecture
+
+Topics = **boxes on the master map**, not “minutes of video.”
+
+**Split** into a new topic when at least one holds:
+
+- New **problem / obstacle** the prior box cannot solve  
+- New **object or definition** that must stick (e.g. RE vs Ω vs *P*)  
+- New **board procedure** (stacking, derivation, axiom list)  
+- New **worldview shift** (physics path → stats path)  
+- A distinct **trap** that needs its own wrong/right treatment  
+
+**Do not split** when:
+
+- Same claim with more examples or emphasis  
+- Pure timestamp gap (still the same map box)  
+- Teacher loops on one system for a long time  
+
+**Claim-mine support:** a coherent cluster of Must-teach claims → one topic; a new cluster → new topic. Mine densely; merge for reading.
+
+### Secondary signal — duration (soft guide only)
+
+| Duration | Soft guide (not law) |
+|----------|----------------------|
+| ~15–25 min | often **4–8** (more if dense definitions; fewer if one arc) |
+| ~25–45 min | often **6–10** |
+| ~45–90 min | often **7–10** — deepen middle topics; do **not** invent boxes for repetition |
+
+### Hard bounds (always)
+
+| Bound | Rule |
+|-------|------|
+| **Floor** | At least **4** topics (full package) — below this the map collapses into an essay |
+| **Ceiling** | At most **10** topics — above this is micro-topic anti-pattern (forbidden) |
+
+Do **not** use 20–30 micro-topics.  
+Do **not** pad to 10 because the video is long.  
+Do **not** under-split a dense short lecture into 4 thin topics that omit claims.
+
+### Decision table
+
+| Situation | Action |
+|-----------|--------|
+| Same definition for 15 min with 3 examples | **One** topic; deep establishing |
+| Three co-defined terms each need wrong/right + ASCII | Prefer **separate** topics |
+| 20 min with many slogans/definitions | Prefer **more** topics (up to 10), each with real Must-teach weight |
+| 70 min recap looping one system | Prefer **fewer** topics + richer establishing; no Topic-1a / Topic-1b clones |
 
 ---
 
