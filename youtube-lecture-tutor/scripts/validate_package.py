@@ -936,9 +936,10 @@ def check_claim_mining(
     pkg: Path, n_topics: int, notes_path: Path, metadata: dict, rep: Report
 ) -> None:
     """
-    Completeness gate: claim sheets + coverage checklist (transcript-mining.md).
-    Default required (ERROR if missing). Soften only for package_status: "legacy"
-    (WARN). requires_claim_mining=false without legacy is an ERROR.
+    Completeness gate: claim sheets, coverage checklist, coverage receipt
+    (transcript-mining.md). Default required (ERROR if missing). Soften only for
+    package_status: "legacy" (WARN). requires_claim_mining=false without legacy
+    is an ERROR. Exec architecture draft: WARN if missing/thin structure.
     """
     claims_dir = pkg / "raw" / "claims"
     slices_dir = pkg / "raw" / "transcript-by-topic"
@@ -1046,6 +1047,116 @@ def check_claim_mining(
                     "review vocabulary — teach end-of-lecture list"
                 )
         print("OK  coverage-checklist.md present")
+
+    # Coverage receipt: claim ID → NOTES location (trace structure only)
+    receipt_path = pkg / "raw" / "coverage-receipt.md"
+    claim_id_re = re.compile(r"\bT(\d{2})-C(\d{2})\b", re.I)
+    if not receipt_path.exists():
+        required_artifact_issue(
+            "raw/coverage-receipt.md missing -- claim ID → NOTES trace required "
+            "(transcript-mining.md Step 3b)"
+        )
+    else:
+        receipt_text = receipt_path.read_text(encoding="utf-8", errors="replace")
+        receipt_ids = {m.group(0).upper() for m in claim_id_re.finditer(receipt_text)}
+        if not receipt_ids:
+            required_artifact_issue(
+                "raw/coverage-receipt.md has no Claim IDs (expected Tnn-Cnn) — "
+                "transcript-mining.md"
+            )
+        else:
+            print(f"OK  coverage-receipt.md ({len(receipt_ids)} claim IDs)")
+
+        sheet_ids: set[str] = set()
+        if claims_dir.is_dir():
+            for cf in sorted(claims_dir.glob("topic-*.md")):
+                body = cf.read_text(encoding="utf-8", errors="replace")
+                sheet_ids |= {
+                    m.group(0).upper() for m in claim_id_re.finditer(body)
+                }
+        if not sheet_ids:
+            rep.warn(
+                "raw/claims/: no Tnn-Cnn IDs found — add **ID:** lines when editing "
+                "(coverage-receipt can use provisional IDs until then)"
+            )
+        else:
+            missing = sorted(sheet_ids - receipt_ids)
+            if missing:
+                required_artifact_issue(
+                    "coverage-receipt.md missing claim IDs present in claim sheets: "
+                    + ", ".join(missing[:12])
+                    + ("…" if len(missing) > 12 else "")
+                )
+            extra = sorted(receipt_ids - sheet_ids)
+            if extra and len(extra) > len(sheet_ids):
+                rep.warn(
+                    "coverage-receipt.md has many IDs not found in claim sheets — "
+                    "check renumbering"
+                )
+
+        # Soft: if receipt cites a NOTES heading fragment, warn when absent
+        if notes_text and receipt_ids:
+            for loc in re.findall(
+                r"(?i)(?:NOTES location|location)\s*[|:]+\s*([^|\n]+)",
+                receipt_text,
+            ):
+                frag = loc.strip().strip("`").strip()
+                if len(frag) < 8 or frag.lower() in (
+                    "covered",
+                    "merged",
+                    "deferred",
+                    "status",
+                ):
+                    continue
+                # use a few distinctive words from location cell
+                words = [w for w in re.findall(r"[A-Za-z]{4,}", frag)[:4]]
+                if words and not all(
+                    re.search(re.escape(w), notes_text, re.I) for w in words[:2]
+                ):
+                    rep.warn(
+                        f"coverage-receipt location may not match NOTES: '{frag[:60]}'"
+                    )
+                    break
+
+    # Exec architecture draft: preferred for current packages; structured soft checks
+    exec_draft = pkg / "raw" / "exec-architecture-draft.md"
+    if not exec_draft.exists():
+        if claim_mining_required:
+            rep.warn(
+                "raw/exec-architecture-draft.md missing — recommended while building "
+                "topics; final Exec Summary still required in NOTES "
+                "(executive-summary-architecture.md)"
+            )
+    else:
+        draft = exec_draft.read_text(encoding="utf-8", errors="replace")
+        # Field presence by heading/label — not by empty keyword spam in NOTES
+        field_pats = {
+            "components": r"(?im)^##\s*components\b",
+            "arrows": r"(?im)^##\s*arrows\b",
+            "scenario": r"(?im)^##\s*scenario",
+            "failure": r"(?im)^##\s*(failure|failures|contrast)\b",
+            "stop": r"(?im)^##\s*(stop|out of scope|scope)\b",
+            "claims": r"(?im)^##\s*(claims|load-bearing)\b",
+        }
+        missing_fields = [
+            name
+            for name, pat in field_pats.items()
+            if not re.search(pat, draft)
+        ]
+        if missing_fields:
+            rep.warn(
+                "exec-architecture-draft.md missing structured sections: "
+                + ", ".join(missing_fields)
+                + " (use ## Components / ## Arrows / ## Scenario / ## Failure / "
+                "## STOP or ## Scope / ## Claims — executive-summary-architecture.md)"
+            )
+        elif word_count(draft) < 40:
+            rep.warn(
+                "exec-architecture-draft.md is very thin — fill boxes/arrows before "
+                "final Exec Summary"
+            )
+        else:
+            print("OK  exec-architecture-draft.md structured sections present")
 
     # Exec summary worldview soft check when notes mention both frameworks
     if notes_text and re.search(r"(?i)deterministic", notes_text) and re.search(

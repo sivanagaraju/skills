@@ -16,6 +16,7 @@
   "package_status": "current",
   "requires_claim_mining": true,
   "beginner_prereqs": false,
+  "ingest_evidence": "E3",
   "topics": ["short", "list", "of", "topic", "titles"]
 }
 ```
@@ -69,3 +70,16 @@ Still not a second full lecture. See `prerequisites-template.md`.
 | ~45–90 min | often 7–10 (deepen; do not invent boxes) |
 
 `duration_seconds` should still be set accurately for soft checks and quiz guidance.
+
+---
+
+## Ingest evidence (optional)
+
+| `ingest_evidence` | Meaning |
+|-------------------|---------|
+| `E3` | Captions + usable frames/composites |
+| `E2` | Captions only |
+| `E1` | Partial / poor ASR |
+| `E0` | No transcript source — do not invent NOTES |
+
+See `ingest-recovery.md` when downloads/frames fail.

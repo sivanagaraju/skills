@@ -143,6 +143,34 @@ After ALL topics + bridges done:
   → delete thin pre-pass if any; draft file may remain agent-only
 ```
 
+### Required draft headings (agent file)
+
+Use these `##` sections so structure is checkable without gaming NOTES:
+
+```markdown
+# Exec architecture draft — <title>
+
+## Components
+- …
+
+## Arrows
+- … → …
+
+## Scenario
+- …
+
+## Failure
+- …
+
+## STOP
+- …   # or ## Scope
+
+## Claims
+- …   # load-bearing closed-book claims
+```
+
+Validator: missing draft → **WARN** (current packages). Present draft with missing sections → **WARN**. Empty keyword stuffing in student Exec Summary is still a writing fail (human/agent).
+
 **Never** ship a skeleton Exec Summary written before topics.  
 **Always** rebuild from the reverse-engineered architecture of the finished NOTES.
 

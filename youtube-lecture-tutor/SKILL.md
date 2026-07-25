@@ -44,6 +44,7 @@ All files under `references/` remain part of the skill — staging is about *whe
 |------|------|
 | Goal / folder layout | `package-contract.md`, `metadata-schema.md` |
 | Topic map + frames | `topic-planning.md`, `diagrams-and-mermaid.md` |
+| Ingest failures / partial media | `ingest-recovery.md` |
 | After `content_type` known | `scenarios.md` (+ `math-formatting.md` if math; `code-extraction.md` if code) |
 | Writing feels thin | `writing-examples.md` |
 | PREREQS drafting | `prerequisites-template.md` |
@@ -72,7 +73,7 @@ Do not maintain or call removed aliases (`lecture-study-package`, `youtube-blog-
 1. **PREREQUISITES first** — default 3–6 ideas; set `beginner_prereqs: true` for 3–8 deeper warm-ups; unlocks the map; not a second lecture.  
 2. **NOTES educative spine only** — TOC → Exec Summary (architecture blueprint) → topics → External references → (optional Apply it) → Sources.  
    **Topic count:** driven by **map boxes + claim clusters** (not clock alone). Absolute **4–10**. Soft duration guide only (topic-planning.md): dense short lectures may need more topics; long deep dives may need fewer, richer ones.  
-3. **Claim-mine before NOTES (default required)** — create timed slices + `raw/claims/topic-NN.md` + coverage checklist (`transcript-mining.md`). Set `requires_claim_mining: true` and `package_status: "current"` (or omit status). **Only** `package_status: "legacy"` softens missing artifacts to WARN. Never write establishing from a single skim.  
+3. **Claim-mine before NOTES (default required)** — timed slices + `raw/claims/topic-NN.md` (IDs `Tnn-Cnn`) + `coverage-checklist.md` + **`coverage-receipt.md`** (`transcript-mining.md`). Set `requires_claim_mining: true` and `package_status: "current"` (or omit status). **Only** `package_status: "legacy"` softens missing artifacts to WARN. Never write establishing from a single skim.  
 4. **Each topic fixed subsections** filled with continuous prose — see `tutor-voice.md`.  
    Map · board · establishing (~80%) · analogy (~10%) · local ASCII (~10%) · bridge.  
    **Fail if establishing is only bullets or thinner than the claim sheet.**  
@@ -105,14 +106,16 @@ Do not maintain or call removed aliases (`lecture-study-package`, `youtube-blog-
 2. Ingest (metadata, captions, frames) → TRANSCRIPT.md, screenshots/, metadata.json  
    Screenshots: **per-chapter multi-frame** → **2×2 composites** (short 1 panel / long 2–3 panels of 4 tiles). Use `composites/` in NOTES Board slots; see topic-planning.md. `--frames-only` re-extracts without re-download.
    Clean ASR duplicates when building timed captions (transcript-mining.md).
+   On failure/partial success → `ingest-recovery.md` (evidence E3–E0; do not invent transcript).
 3. Classify content_type (scenarios.md)
 4. Draft architecture map + topic list with times (topic-planning.md: map/claims first; duration soft)
    → worldview arc: from ___ to ___ (required for theory/math)
    → if goal still unclear → HIL
 5. ★ CLAIM MINE (transcript-mining.md) — required before NOTES (default ERROR if missing)
    - raw/transcript-by-topic/topic-NN.txt
-   - raw/claims/topic-NN.md  (definitions, procedures, slogans, warnings, ~MM:SS)
+   - raw/claims/topic-NN.md  (IDs Tnn-Cnn + definitions, procedures, slogans, ~MM:SS)
    - raw/coverage-checklist.md (FOUND/ABSENT must-capture items)
+   - raw/coverage-receipt.md (claim ID → NOTES location; update after establishing)
    Mine every minute for claims; merge into topics for reading — do not drop definitions.
 6. Write PREREQUISITES.md (3–6 ideas default; beginner_prereqs: true → up to 8; unlock map words)
 7. Write NOTES **topics** from claim sheets (output-blog-contract.md + tutor-voice.md)
@@ -121,7 +124,7 @@ Do not maintain or call removed aliases (`lecture-study-package`, `youtube-blog-
    After **each** topic: update `raw/exec-architecture-draft.md` (components, arrows, scenario notes)
 8. ★ Write final **Executive Summary** into NOTES (still before Topic 1) using
    `executive-summary-architecture.md` — architecture blueprint, not a video abstract
-9. Coverage gate: every Must-teach claim appears in NOTES; checklist FOUND items taught
+9. Coverage gate: every Must-teach claim in NOTES; checklist FOUND items; receipt IDs complete
 10. raw/questions.json (Part A + Part B; claims as sources; map question; **shuffle answer keys**)
 11. generate_quiz.py → quiz.html
 12. validate_package.py --dir <NN-slug>   ← **required before done**
@@ -154,8 +157,8 @@ Do not maintain or call removed aliases (`lecture-study-package`, `youtube-blog-
   README.md
 ```
 
-**Structural quality bar:**  
-Use a package built under the current contract only after verifying that its directory exists and it passes the current quality gate. Do not treat a fixed historical path as canonical.
+**Structural quality bar / golden package:**  
+See `package-contract.md` → **Golden package**. Re-validate that path after skill changes; do not treat a failing or missing path as canonical.
 
 ---
 
@@ -230,9 +233,9 @@ Fixes automated gaps inspired by educative `evaluate_blog_completeness()`: topic
 - [ ] Screenshots: prefer `screenshots/composites/*` (2×2); long topics 2–3 panels  
 
 ### Completeness (as important as structure — was the historical failure mode)
-- [ ] Claim mining default: `raw/claims/topic-*.md` + `raw/coverage-checklist.md` required unless `package_status: "legacy"`  
-- [ ] Current packages set `requires_claim_mining: true` (explicit); coverage checklist worldview arc filled  
-- [ ] Every **Must teach** claim appears in NOTES establishing (paraphrase OK; omission fails)  
+- [ ] Claim mining default: `raw/claims/topic-*.md` + `coverage-checklist.md` + **`coverage-receipt.md`** unless legacy  
+- [ ] Current packages set `requires_claim_mining: true`; claim IDs `Tnn-Cnn`; receipt maps each ID → NOTES  
+- [ ] Every **Must teach** claim appears in NOTES establishing (paraphrase OK; omission fails) — receipt is trace, not proof of quality  
 - [ ] End-of-lecture review/homework list taught if present in transcript  
 - [ ] Board **procedures** (stacking, derivation steps, …) have ASCII in NOTES  
 - [ ] Definitions that co-occur in transcript (e.g. model **and** algorithm) both defined  
