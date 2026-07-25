@@ -39,6 +39,7 @@ Faithfulness stays: same claims, examples, and order of ideas as the lecture. **
 - Clean up ASR garbage; never paste broken auto-caption English as final prose
 - No AI slop: *delve, tapestry, “in this section we will”, “it’s important to note”, “comprehensive overview”, “unlock the power”, “dive deep into”, “without further ado”*
 - Prefer plain verbs: *shows, builds, fails, forces, maps* over *leverages, utilizes, facilitates*
+- **Exec Summary lead** is stricter still (`executive-summary-architecture.md`): no TED open (“is not import/fit”), no “opening frame,” no 80-word philosophical pipeline sentence — job → method → fork in 3–6 short sentences
 - The heading **What he is establishing** stays for structure; **inside** write a full lesson, not a report of what he did
 
 ---
@@ -153,7 +154,8 @@ Repeating that four-line stamp on every topic is **void**. It reads as AI checkl
 ### Board slot
 
 - Embed the composite **and** write **what is on the board in words** (transcribe the teaching content).  
-- Caption = “what a reader must own from this board,” not “screenshot ~12:00.”
+- Caption = “what a reader must own from this board,” not “screenshot ~12:00.”  
+- Path must be **unique to this topic’s time range** — do not paste `panel1of3` on three topics (`topic-planning.md`).  
 
 ---
 

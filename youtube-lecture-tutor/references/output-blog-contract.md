@@ -66,7 +66,8 @@ Exec Summary is the **architecture phase** of the document: reverse-engineer the
      a) ### Where this sits on the master map   ← prose, not a one-line tag;
            if this topic leans on a warm-up idea, **inline** link e.g.
            [sets warm-up](./PREREQUISITES.md#p1-sets) (not only the top banner)
-     b) ### Board / screenshot  (+ image; caption what to notice)
+     b) ### Board / screenshot  (+ image unique to this topic’s MM:SS; caption what to notice;
+           never reuse the same composite path on another topic — topic-planning.md)
      c) ### What he is establishing  ← **~80% teaching budget**; mini-lesson from claim sheet:
            all Must-teach claims; concrete case → plain claim → wrong vs right →
            symbols after English → ownership close **in flowing prose**
@@ -82,7 +83,9 @@ Exec Summary is the **architecture phase** of the document: reverse-engineer the
      - Full law: `global-agent.md` (load when writing this section)
      - Deep research before each URL (multi-query + verify; never invent)
      - Each link maps to a **topic / map box** from THIS video  
-     - Mix when possible: original/primary + university lecture/video + solid blog/interactive  
+     - Wide net: **YouTube / teaching videos** (uni or independent), **blogs** (famous or strong lesser-known),
+       course notes, primary sources, interactive demos — quality of teaching, not pedigree  
+     - Default **no Wikipedia**; mix video + blog/notes when possible  
      - Prefer table: Resource | Matches lecture… | Why it helps  
      - Prefer spread across hard topics; do not require one link per topic  
      - Fail if only generic Wikipedia dumps with no topic mapping  

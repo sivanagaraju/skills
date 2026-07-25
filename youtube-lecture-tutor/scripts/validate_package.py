@@ -72,6 +72,20 @@ AI_SLOP_PHRASES = [
 # Single words: warn only when used as filler near meta prose (still soft).
 AI_SLOP_WORDS_SOFT = ["pivotal", "robust landscape", "ever-evolving"]
 
+# Exec Summary TED / negation lead (WARN) — first ~700 chars of exec body.
+EXEC_TED_LEAD_PATTERNS = [
+    r"\bis not\b.{0,40}\bimport\b",
+    r"\bis not\b.{0,60}\bfit\b",
+    r"opening frame",
+    r"in this course.?s opening",
+    r"not just about",
+    r"not merely",
+    r"unlock the",
+    r"dive deep",
+    r"in today.?s world",
+    r"paradigm shift",
+]
+
 BANNED_MERMAID = [
     "block-beta",
     "sankey-beta",
@@ -335,6 +349,37 @@ def check_notes(
                     "NOTES.md: Executive Summary has a fenced block but no box-drawing "
                     "chars — OK if the map is clear ASCII"
                 )
+        # Recipe blocks (soft) — architecture section, not abstract-only
+        recipe_checks = [
+            (r"(?i)scenario", "Scenario walkthrough"),
+            (r"(?i)\bSTOP\b|out of scope|out-of-scope", "STOP / out of scope"),
+            (r"(?i)load-bearing|closed-book", "Load-bearing claims"),
+        ]
+        for pat, label in recipe_checks:
+            if not re.search(pat, exec_body):
+                rep.warn(
+                    f"NOTES.md: Executive Summary may lack '{label}' block "
+                    "(executive-summary-architecture.md recipe)"
+                )
+        # TED / negation lead — check prose before first fenced diagram
+        lead_cut = re.search(r"```", exec_body)
+        lead = exec_body[: lead_cut.start()] if lead_cut else exec_body[:900]
+        lead = re.sub(r"^#+\s.*$", "", lead, flags=re.MULTILINE)
+        for pat in EXEC_TED_LEAD_PATTERNS:
+            if re.search(pat, lead, re.I | re.DOTALL):
+                rep.warn(
+                    "NOTES.md: Executive Summary lead looks like TED/negation/AI-slop open "
+                    f"(matched /{pat}/) — rewrite 3–6 plain sentences: job → method → fork "
+                    "(executive-summary-architecture.md)"
+                )
+                break
+        # One long lead paragraph smell: >90 words before first fence
+        lead_words = word_count(lead)
+        if lead_words > 90:
+            rep.warn(
+                f"NOTES.md: Executive Summary lead is long (~{lead_words} words before diagram) "
+                "— keep 3–6 short sentences; put structure in the blueprint"
+            )
 
     topics = find_sections(text, r"^## Topic \d+:.*$")
     # stop topic body before global sections if last topic absorbs them
@@ -659,14 +704,23 @@ def check_notes(
                 "NOTES.md External references: no topic-mapping language "
                 "(prefer table or 'Matches lecture…' / 'Why it helps' — global-agent.md)"
             )
-        wiki_only = n_links > 0 and all(
-            "wikipedia.org" in m.group(0).lower()
+        wiki_urls = [
+            m.group(0)
             for m in re.finditer(r"\]\((https?://[^)]+)\)", ext_body)
-        )
-        if wiki_only and n_links >= 2:
+            if "wikipedia.org" in m.group(0).lower()
+        ]
+        n_wiki = len(wiki_urls)
+        if n_wiki > 0:
             rep.warn(
-                "NOTES.md External references: only Wikipedia links — "
-                "add original blogs / university lectures / primary sources"
+                f"NOTES.md External references: {n_wiki} Wikipedia link(s) — "
+                "prefer teaching videos (any strong channel) + real blogs/notes/demos "
+                "(default zero wiki; global-agent.md)"
+            )
+        if n_wiki >= 2 or (n_links > 0 and n_wiki == n_links):
+            rep.warn(
+                "NOTES.md External references: Wikipedia-heavy list — "
+                "replace with YouTube explainers, course videos, blogs, notes, or demos "
+                "that map to lecture topics (global-agent.md)"
             )
     else:
         rep.warn("NOTES.md: no '## External references' section found")
@@ -682,13 +736,64 @@ def check_notes(
             f"many topics may lack a screenshot"
         )
     composite_refs = len(re.findall(r"screenshots/composites/", text))
-    if (pkg := path.parent) and (pkg / "screenshots" / "composites").is_dir():
+    pkg = path.parent
+    n_comp = 0
+    if (pkg / "screenshots" / "composites").is_dir():
         n_comp = len(list((pkg / "screenshots" / "composites").glob("*.png")))
         if n_comp >= 3 and composite_refs == 0:
             rep.warn(
                 "NOTES.md: composites/ exists but no embeds of screenshots/composites/ "
                 "— prefer 2×2 panels over single sparse frames"
             )
+        if n_topics and n_comp > 0 and n_comp < n_topics and n_topics >= 4:
+            rep.warn(
+                f"NOTES.md: only {n_comp} composites on disk for {n_topics} topics — "
+                "write raw/topic-ranges.json and re-run ingest --frames-only; "
+                "do not reuse the same panels across topics (topic-planning.md)"
+            )
+
+    # Same screenshot path embedded in multiple topics → reuse failure
+    path_topics: dict[str, list[int]] = {}
+    for ti, (heading, body) in enumerate(cleaned, 1):
+        for m in re.finditer(r"!\[[^\]]*\]\(([^)]+)\)", body):
+            img_path = m.group(1).strip().split()[0].replace("\\", "/")
+            # normalize
+            img_path = img_path.lstrip("./")
+            if "screenshots/" not in img_path and not img_path.endswith(
+                (".png", ".jpg", ".jpeg", ".webp")
+            ):
+                continue
+            path_topics.setdefault(img_path, []).append(ti)
+    reused = {p: ts for p, ts in path_topics.items() if len(set(ts)) >= 2}
+    if reused:
+        # show up to 3 examples
+        examples = []
+        for p, ts in list(reused.items())[:3]:
+            examples.append(f"{p} → topics {sorted(set(ts))}")
+        rep.warn(
+            f"NOTES.md: {len(reused)} screenshot path(s) reused across topics "
+            f"({'; '.join(examples)}) — assign unique composites by topic MM:SS "
+            "from screenshots/manifest.json (topic-planning.md)"
+        )
+    # manifest source smell: single "full" range on a long multi-topic package
+    man_path = pkg / "screenshots" / "manifest.json"
+    if man_path.is_file() and n_topics >= 5:
+        try:
+            man = json.loads(man_path.read_text(encoding="utf-8"))
+            src = (man.get("range_source") or "").lower()
+            ccount = int(man.get("composite_count") or n_comp or 0)
+            if ccount and ccount < n_topics and src in ("", "full", "chapters"):
+                # old manifests lack range_source; check slug full
+                comps = man.get("composites") or []
+                slugs = {str(c.get("slug") or "") for c in comps}
+                if slugs <= {"full", ""} or ccount <= 3:
+                    rep.warn(
+                        "screenshots/manifest.json looks like sparse whole-video sampling "
+                        f"(composites={ccount}, topics={n_topics}) — re-extract with "
+                        "synthetic slices or raw/topic-ranges.json (ingest_youtube.py)"
+                    )
+        except (json.JSONDecodeError, OSError, TypeError, ValueError):
+            pass
 
     # code_tutorial: expect fenced code somewhere in NOTES
     code_fences = len(re.findall(r"```(?:python|bash|ts|js|yaml|json)", text, re.I))

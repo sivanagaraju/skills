@@ -1,7 +1,7 @@
 # Executive Summary — architecture blueprint (mandatory)
 
 **Load this file whenever writing or rewriting the NOTES `## Executive Summary` section.**  
-It is the **only** Exec Summary law. `output-blog-contract.md` points here; do not improvise a thin “bullet map.”
+It is the **only** Exec Summary law. `output-blog-contract.md` points here; do not improvise a thin “bullet map” or a TED opening monologue.
 
 **Persona:** senior technical blogger + information architect + engineering documentation writer  
 (15+ years of math / ML / systems blogs). You are **not** summarizing a talk.  
@@ -18,9 +18,12 @@ You are **reverse-engineering the lecture into a system architecture** the stude
 | Diagram-first story a smart beginner can walk | Acronym soup |
 | Written after topics exist (post-hoc) | Skeleton drafted first and frozen |
 | Same *file place* (before Topic 1) | Scattered mid-NOTES |
+| Short concrete lead that orients the blueprint | Magazine / TED prose about what ML “really is” |
 
 **Test:** “If this were a service design doc, would a new engineer understand the *system* before reading the modules?”  
 If no → rewrite.
+
+**Lead test:** Read only the first 4–6 sentences with the diagram hidden. Can the student state the **job**, the **method**, and the **fork/payoff** in plain words? If the lead is a philosophical riff or a “not X, but Y” sermon, rewrite.
 
 ---
 
@@ -33,7 +36,7 @@ If no → rewrite.
 | C | **Linear pipeline only** (A→B→C→D) | Pure procedure lectures | Misses forks, failures, contrast |
 | D | **C4-style layers** (context → containers → components) | Software / systems | Can feel heavy for math |
 | E | **Concept architecture + scenario swimlanes** (boxes, arrows, mini-boxes, worked scenario) | **Math/ML theory, FA, probability** | Needs discipline on ASCII clarity |
-| **★ F** | **Hybrid (recommended default):** short architect prose + **system context** + **main blueprint (boxes/arrows)** + **1 scenario walkthrough** + **STOP / out-of-scope** + closed-book “load-bearing claims” | Almost all MFML / NPTEL packages | Over-drawing if you skip the prose lead |
+| **★ F** | **Hybrid (recommended default):** short architect prose + **system context** + **main blueprint (boxes/arrows)** + **1 scenario walkthrough** + **STOP / out-of-scope** + closed-book “load-bearing claims” | Almost all MFML / NPTEL packages | Over-drawing if you skip the prose lead; TED lead if you over-write the prose |
 
 **Default for this skill = Approach F.**  
 Math lectures get the same *shape* as an engineering architecture section: context, components, data/idea flow, failure mode, boundary.
@@ -41,8 +44,6 @@ Math lectures get the same *shape* as an engineering architecture section: conte
 ---
 
 ## Design principles (from architecture practice)
-
-Inspired by architecture-diagram best practices (blueprint of components + relations; clarity over clutter; legend when needed; arrows that mean something) and C4 thinking (context first, then structure, then detail elsewhere).
 
 1. **One primary blueprint** — the star of Exec Summary (not three competing maps).  
 2. **Boxes = durable concepts** the lecture installs (Ω, event, *P*, RE…), not topic titles.  
@@ -53,7 +54,8 @@ Inspired by architecture-diagram best practices (blueprint of components + relat
 7. **STOP boundary** — what this video does *not* finish (honest scope).  
 8. **Legend** if you use dashed boxes, double arrows, or “blocked” marks.  
 9. **Expand acronyms** on first use in the Exec Summary prose (FA, RE, …).  
-10. **ASCII only** here (skill is ASCII-first; no Mermaid required in Exec Summary).
+10. **ASCII only** here (skill is ASCII-first; no Mermaid required in Exec Summary).  
+11. **Lead serves the blueprint** — short, concrete, no TED frame.
 
 ---
 
@@ -70,14 +72,14 @@ Keep the heading:
 ### Block order (do not reorder)
 
 ```
-1. Architect’s lead (4–8 sentences)     — problem, system goal, payoff; no diagram yet
-2. Worldview arc (1 sentence)           — from ___ to ___ when the lecture has a shift
-3. System context (small ASCII)         — who/what sits outside this lecture’s system
-4. ★ Main blueprint (large ASCII)       — boxes, arrows, mini-boxes; 20–45 lines typical
+1. Architect’s lead (3–6 short sentences)  — job, method, fork/payoff; plain English
+2. Worldview arc (1 sentence)              — from ___ to ___ when the lecture has a shift
+3. System context (small ASCII)            — who/what sits outside this lecture’s system
+4. ★ Main blueprint (large ASCII)          — boxes, arrows, mini-boxes; 20–45 lines typical
 5. Scenario walkthrough (ASCII or short numbered path through the blueprint)
-6. Failure / contrast callout           — prose or small ASCII “blocked path”
-7. STOP / out of scope                  — later lectures; not a dump of future TOC
-8. Load-bearing claims (5–8 bullets)    — closed-book; claims not topic renames
+6. Failure / contrast callout              — prose or small ASCII “blocked path”
+7. STOP / out of scope                     — later lectures; not a dump of future TOC
+8. Load-bearing claims (5–8 bullets)       — closed-book; claims not topic renames
 9. Course/speaker one-liner if known
 ```
 
@@ -90,6 +92,68 @@ Keep the heading:
 - Bare FA/RE on first mention  
 - No scenario path through the diagram  
 - No STOP boundary when the lecture clearly defers material  
+- **TED / negation lead** (see below)  
+- Lead longer than the blueprint (prose essay + thin diagram)  
+
+---
+
+## Architect’s lead — hard writing law
+
+The lead is a **door into the diagram**, not a standalone essay.
+
+### Must do
+
+- **3–6 short sentences** (not one long periodic sentence).  
+- Name the **job** in concrete terms (what you have; what you must answer).  
+- Name the **method** the lecture installs (guess family + refine; axioms; pipeline stages…).  
+- Name the **fork or payoff** if the lecture has one (physics blocked → stats; RE → Ω → *P*…).  
+- Expand acronyms on first use.  
+- Prefer plain verbs: *defines, installs, fails, forces, maps*.  
+
+### Must not (AI-slop / TED frame)
+
+| Ban | Why it fails |
+|-----|----------------|
+| Opening with **“is not …”** / **“not just …”** / **“not merely …”** | Negation sermon; delays the actual job |
+| **“in this course’s opening frame”** / **“the lecture frames ML as”** | Meta stage direction, not architecture |
+| Magazine cadence: one 60+ word sentence packing problem + method + philosophy | Unreadable; sounds generated |
+| Soft-focus nouns without operators: *journey, landscape, tapestry, paradigm shift* | Empty |
+| “Unlock / dive deep / comprehensive overview / in today’s world” | Stock AI |
+| Quoting sklearn folklore as the hook (“import a library and call fit”) unless the **teacher** used that line as a load-bearing contrast — and even then, put the **job** first | Audience-bait lead |
+
+### Bad lead (void — real failure mode)
+
+```markdown
+Machine learning, in this course’s opening frame, is not “import a library and call fit.”
+It is the classical scientific job of **function approximation (FA)**: something maps
+allowed inputs to outputs; you only see a finite notebook of pairs; you must answer
+new inputs you never wrote down. The system this lecture installs is a pipeline from
+that problem, through a deliberate **guess + refine** method, into a fork where
+**physics-first** modeling often fails on human-semantic targets and **statistical /
+probabilistic** modeling takes over.
+```
+
+Problems: TED negation open; “opening frame”; one breathless system-description sentence; diagram has to rescue the prose.
+
+### Good lead (same lecture, architecture-first)
+
+```markdown
+This lecture defines the job: estimate an unknown function \(f\) from a finite table of
+input–output pairs, then answer new inputs that were never in the table. It installs the
+method—guess a **model family**, refine with data via an **algorithm**—and shows why
+memorizing the table fails. It then blocks the physics-first path for many human labels
+(sensors ≠ “disease”) and turns the course toward **statistical / probabilistic** modeling.
+```
+
+Short. Concrete. No “is not fit().” The blueprint below carries the boxes.
+
+### Another good shape (probability lecture)
+
+```markdown
+Once function approximation needs uncertainty language, this lecture installs the
+measurement stack: random experiment → sample space Ω → events → probability measure P.
+It spends the hour on what each object is for and which axioms P must obey—not on RVs yet.
+```
 
 ---
 
@@ -140,6 +204,7 @@ After each later topic:
 
 After ALL topics + bridges done:
   → ★ write final ## Executive Summary into NOTES.md (full recipe above)
+  → rewrite the lead last: 3–6 plain sentences pointing at the finished blueprint
   → delete thin pre-pass if any; draft file may remain agent-only
 ```
 
@@ -179,8 +244,6 @@ Optional agent artifact (not student-facing):
 ```
 raw/exec-architecture-draft.md
 ```
-
-Suggested draft fields: components[], arrows[], scenario, failures[], stop[], claims[].
 
 ---
 
@@ -232,7 +295,7 @@ Then a **scenario** strip (X-ray walkthrough through the same boxes).
 
 ## Calibration: bad vs good
 
-### Bad (void)
+### Bad (void) — TOC rename
 
 ```markdown
 ## Executive Summary
@@ -244,9 +307,13 @@ Key ideas:
 4. P
 ```
 
+### Bad (void) — TED lead (architecture may exist below and still fail QA)
+
+See “Bad lead” above. Blueprint alone does not redeem a negation-sermon open.
+
 ### Good (architecture phase)
 
-- Lead prose states the system goal and why the old path fails.  
+- Lead: job → method → fork in plain sentences.  
 - One main blueprint with labeled boxes and arrows.  
 - One scenario path.  
 - STOP boundary.  
@@ -270,6 +337,7 @@ Key ideas:
 
 - [ ] Loaded this file and followed block order  
 - [ ] Wrote Exec Summary **after** topics (draft updated per topic optional; final write last)  
+- [ ] **Lead** is 3–6 plain sentences; no TED / “is not fit()” open  
 - [ ] Main ASCII has **boxes + named arrows** (not only a list)  
 - [ ] At least one **scenario** path through the diagram  
 - [ ] Failure/contrast and **STOP** present when applicable  
@@ -283,5 +351,5 @@ Key ideas:
 
 - `output-blog-contract.md` — file order + pointer here  
 - `diagrams-and-mermaid.md` — ASCII craft for local pictures (Exec Summary uses this vocabulary too)  
-- `topic-planning.md` — worldview arc feeds the blueprint  
-- `tutor-voice.md` — prose quality of the architect’s lead  
+- `topic-planning.md` — worldview arc feeds the blueprint; screenshot assignment is separate  
+- `tutor-voice.md` — prose quality (no slop; Exec lead is stricter still)  

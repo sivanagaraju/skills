@@ -97,7 +97,7 @@ Do **not** under-split a dense short lecture into 4 thin topics that omit claims
 - [ ] Timestamp range  
 - [ ] `raw/transcript-by-topic/topic-NN.txt` sliced  
 - [ ] `raw/claims/topic-NN.md` filled (definitions, procedures, slogans, ~times)  
-- [ ] Screenshot path or “no content frame — ASCII only”  
+- [ ] **Unique** screenshot path whose times fall in this topic (or “no content frame — ASCII only”)  
 - [ ] Establishing will teach **all** Must-teach claims  
 - [ ] ASCII for every board **procedure** in this range  
 - [ ] Analogy short confirmation only  
@@ -106,9 +106,84 @@ Do **not** under-split a dense short lecture into 4 thin topics that omit claims
 
 ---
 
-## Frame / screenshot priorities (from analyzer `priority_frames`)
+## Screenshots — generation + Board assignment (hard law)
 
-When selecting or labeling frames, prefer:
+**Product failure this section kills:** three panels from a whole-video sample, then the same `panel1of3` pasted on Topics 1–3, `panel2` on Topics 4–6, `panel3` on Topics 7–8. That is not coverage. Boards must track **time**.
+
+### Why panels run out
+
+| Cause | What happens |
+|-------|----------------|
+| No YouTube chapters | Old pipeline treated the whole video as one range → max ~12 frames → **3 composites** for a 45+ min lecture |
+| Agent ignores `manifest.json` times | Picks the first composite repeatedly |
+| Topic map has 8 boxes, disk has 3 panels | Agent “fills” Board slots by **reuse** instead of **re-extract** |
+
+### Ingest policy (script)
+
+`scripts/ingest_youtube.py` builds ranges in this **priority**:
+
+1. **`raw/topic-ranges.json`** (best) — write after the topic map exists; one slice per topic  
+2. YouTube / description chapters  
+3. **Synthetic ~6 min slices** if neither exists (never a single `full` range on a long video)
+
+Each range → multi-frame tiles → **2×2 composites** in `screenshots/composites/`.  
+`screenshots/manifest.json` lists each composite with `time_start` / `time_end` (and range bounds).
+
+```bash
+# first pass (no topic map yet): synthetic or chapter ranges
+python …/ingest_youtube.py --url URL --out path --download-video
+
+# after topic MM:SS exist — write topic-ranges, then re-extract
+# raw/topic-ranges.json example:
+# [
+#   {"start_time": 0, "end_time": 390, "title": "topic-01-mission"},
+#   {"start_time": 390, "end_time": 724, "title": "topic-02-fa"}
+# ]
+python …/ingest_youtube.py --out path --frames-only
+```
+
+`--frames-only` **wipes** prior `screenshots/raw` and `composites` pngs so stale panels do not mix with new ones. URL optional on frames-only.
+
+### Board assignment rules (agent — non-negotiable)
+
+1. Open `screenshots/manifest.json`.  
+2. For each topic with range `[T0, T1]`, pick composite(s) whose **`time_start`–`time_end` overlaps `[T0, T1]`** (or whose `range_start`–`range_end` is that topic slice).  
+3. **One composite path → one topic.** Do **not** reuse the same path on another topic.  
+4. Exception (rare): teacher re-shows the exact same board in two topics — still prefer a later/earlier tile if one exists; if truly identical, caption must say “same board revisited” and only one topic owns the embed.  
+5. Short topic → **1** panel. Long / board-dense topic → **2–3** panels from **that** range only.  
+6. Prefer **`composites/*.png`**, not sparse single tiles.  
+7. Caption = **what is on the board** + ~MM:SS of the tiles — not only a topic label.  
+8. **If `composite_count` < topic count** (or many topics would share panels):  
+   - Write / refresh `raw/topic-ranges.json` from the topic map  
+   - Re-run `--frames-only`  
+   - **Do not** pad Boards by recycling the same three files  
+9. If still no usable video (E2): every Board is **ASCII-only** + honest “no content frame” — never invent paths.
+
+### Fail (void)
+
+| Smell | Fix |
+|-------|-----|
+| Same `composites/…png` path in ≥2 topics | Re-assign by time or re-extract |
+| Only `ch01-full-panel*` for an 8-topic package | Synthetic/topic-range re-extract; rewrite Boards |
+| Board caption is only a clock or “early lecture frames” | Transcribe board content |
+| Talking-head-only as the topic figure | Prefer board/slide tiles |
+
+### Capture hygiene
+
+- No talking-head-only as the sole figure  
+- Prefer clean boards/slides fully visible  
+- Cover start, middle, **final 20%** of the lecture timeline  
+- Prefer later frame if the same slide is only partially revealed  
+- Final-minute review lists on the board — capture them  
+
+### Embed shape
+
+```markdown
+![what to notice on the board](./screenshots/composites/ch03-topic-03-….png)
+**Figure — ~12:04–14:40:** domain/range sketch + table of (x,y) pairs; notice …
+```
+
+### Frame priorities by content_type
 
 | content_type | Prefer capturing |
 |--------------|------------------|
@@ -120,54 +195,12 @@ When selecting or labeling frames, prefer:
 | soft_skills | concept_text, framework, comparison_table |
 | mixed | concept_text, diagram, code_editor, comparison_table |
 
-### Capture hygiene (port of timestamp prompt constraints)
-
-- **No talking-head-only** frames as the topic figure  
-- Prefer clean boards/slides fully visible  
-- Spread coverage: start, middle, **final 20%** of video (do not stop at halfway)  
-- Prefer later frame if same slide partially revealed  
-- Aim ~1 content frame per topic minimum when possible  
-- **Final-minute review lists** often live on the board — capture them  
-
-### Embed
-
-```markdown
-![what to notice](./screenshots/composites/…)
-**Figure — ~MM:SS:** one-line caption of board content (not only a clock)
-```
-
----
-
-## Ingest script note — screenshots (multi-frame + 2×2 composites)
-
-`scripts/ingest_youtube.py` (with `--download-video` or `--frames-only`) captures **many** frames per chapter, then builds **2×2 composite panels** for NOTES.
+### After topic map (pipeline hook)
 
 ```
-screenshots/
-  raw/           # individual tiles
-  composites/    # 2×2 grids — USE THESE IN NOTES
-  manifest.json
-```
-
-Policy by chapter length (approx):
-
-| Chapter length | Raw frames | Composites |
-|----------------|------------|------------|
-| Short | 4 | 1 |
-| Medium | 8 | 2 |
-| Long | 12 | 3 |
-
-In NOTES Board slots:
-
-1. Prefer **`composites/*.png`**, not single sparse grids.  
-2. Short topic → **1** composite.  
-3. **Long topic** (code-heavy / ≥15 min chapter) → embed **2–3** composites.  
-4. Caption what to notice on the chalk/IDE.
-
-```bash
-# full ingest + multi-frame composites
-python …/ingest_youtube.py --url URL --out path --download-video
-
-# re-run composites only (existing lecture.mp4 + chapters.json)
-python …/ingest_youtube.py --url URL --out path --frames-only
+topic list with MM:SS
+  → write raw/topic-ranges.json
+  → --frames-only (if video on disk)
+  → assign unique composites per topic from manifest
+  → then claim-mine / write NOTES Boards
 ```

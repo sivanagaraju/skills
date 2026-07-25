@@ -125,33 +125,125 @@ def slugify_title(title: str) -> str:
     return (s or "ch")[:48]
 
 
-def chapter_ranges(
-    chapters: list[dict] | None, duration: float
-) -> list[tuple[float, float, str]]:
-    """Return (start, end, slug) for each chapter spanning full video."""
-    if not chapters:
+# Synthetic segment length when YouTube has no chapters (seconds).
+# ~6 min slices → ~1 composite each; stops the "one full-video panel reused on every topic" failure.
+SYNTHETIC_SEGMENT_SEC = 360.0  # 6 minutes
+
+
+def _range_from_dict(ch: dict, default_end: float, index: int) -> tuple[float, float, str]:
+    start = float(ch.get("start_time") if ch.get("start_time") is not None else ch.get("start") or 0)
+    end_raw = ch.get("end_time") if ch.get("end_time") is not None else ch.get("end")
+    end = float(end_raw) if end_raw is not None else default_end
+    title = str(ch.get("title") or ch.get("slug") or f"seg{index:02d}")
+    return (start, max(end, start + 1.0), slugify_title(title))
+
+
+def synthetic_ranges(duration: float) -> list[tuple[float, float, str]]:
+    """
+    When the video has no chapters, slice time into ~6 min windows.
+    Each window gets one 2×2 composite (4 frames). A 48-min lecture → ~8 panels
+    instead of a single "full" range capped at 3 panels.
+    """
+    if duration <= 0:
+        return [(0.0, 1.0, "full")]
+    if duration <= SYNTHETIC_SEGMENT_SEC * 1.25:
+        # Short video: one range is fine; still denser frame count via frames_per_chapter
         return [(0.0, duration, "full")]
-    sorted_ch = sorted(chapters, key=lambda c: float(c.get("start_time") or 0))
     ranges: list[tuple[float, float, str]] = []
-    for i, ch in enumerate(sorted_ch):
-        start = float(ch.get("start_time") or 0)
-        end = (
-            float(sorted_ch[i + 1].get("start_time") or duration)
-            if i + 1 < len(sorted_ch)
-            else duration
-        )
-        ranges.append((start, max(end, start + 1.0), slugify_title(str(ch.get("title") or f"ch{i+1}"))))
+    t = 0.0
+    i = 1
+    while t < duration - 0.5:
+        end = min(t + SYNTHETIC_SEGMENT_SEC, duration)
+        # Absorb a tiny leftover tail into the last segment
+        if duration - end < 120.0 and end < duration:
+            end = duration
+        ranges.append((t, end, f"seg{i:02d}"))
+        t = end
+        i += 1
+        if end >= duration:
+            break
     return ranges
 
 
-def frames_per_chapter(dur_sec: float) -> int:
+def chapter_ranges(
+    chapters: list[dict] | None,
+    duration: float,
+    *,
+    source_label: str | None = None,
+) -> tuple[list[tuple[float, float, str]], str]:
     """
-    How many raw frames to capture inside one chapter.
+    Return ((start, end, slug), …) and a source tag:
+      topic-ranges | youtube-chapters | description | synthetic
+    Priority: caller-supplied topic/chapter list > synthetic time slices.
+    Never collapse a long video to a single "full" range (that starves NOTES of panels).
+    """
+    if chapters:
+        sorted_ch = sorted(
+            chapters, key=lambda c: float(c.get("start_time") or c.get("start") or 0)
+        )
+        ranges: list[tuple[float, float, str]] = []
+        for i, ch in enumerate(sorted_ch):
+            if ch.get("end_time") is not None or ch.get("end") is not None:
+                start, end, slug = _range_from_dict(ch, duration, i + 1)
+            else:
+                start = float(ch.get("start_time") or ch.get("start") or 0)
+                end = (
+                    float(sorted_ch[i + 1].get("start_time") or sorted_ch[i + 1].get("start") or duration)
+                    if i + 1 < len(sorted_ch)
+                    else duration
+                )
+                slug = slugify_title(str(ch.get("title") or ch.get("slug") or f"ch{i+1}"))
+                start, end, slug = start, max(end, start + 1.0), slug
+            ranges.append((start, end, slug))
+        return ranges, (source_label or "chapters")
+    return synthetic_ranges(duration), "synthetic"
+
+
+def load_frame_range_sources(out: Path, chapters: list[dict] | None) -> tuple[list[dict] | None, str]:
+    """
+    Prefer agent-written topic time map for frame extraction.
+      raw/topic-ranges.json  — after topic planning (best: one panel band per topic)
+      chapters / description — YouTube chapters
+      else synthetic slices
+    topic-ranges.json items: {start_time|start, end_time|end?, title|slug}
+    """
+    topic_path = out / "raw" / "topic-ranges.json"
+    if topic_path.exists():
+        try:
+            data = json.loads(topic_path.read_text(encoding="utf-8"))
+            if isinstance(data, list) and data:
+                print(f"frame ranges: using raw/topic-ranges.json ({len(data)} slices)")
+                return data, "topic-ranges"
+            if isinstance(data, dict) and data.get("ranges"):
+                ranges = data["ranges"]
+                print(f"frame ranges: using raw/topic-ranges.json ({len(ranges)} slices)")
+                return ranges, "topic-ranges"
+        except (json.JSONDecodeError, OSError) as e:
+            print(f"WARNING: could not read topic-ranges.json: {e}")
+    if chapters:
+        return chapters, "youtube-chapters"
+    return None, "synthetic"
+
+
+def frames_per_chapter(dur_sec: float, *, range_source: str = "chapters") -> int:
+    """
+    How many raw frames to capture inside one range.
     Short: 4 (→ 1 composite of 4)
     Medium: 8 (→ 2 composites)
     Long: 12 (→ 3 composites)
+
+    Synthetic ~6 min slices: always 4 frames → 1 panel (density comes from many slices).
+    Topic-range slices: 4 if short, 8 if topic ≥8 min (long topics may get 2 panels).
     """
+    if range_source == "synthetic":
+        return 4
     mins = dur_sec / 60.0
+    if range_source == "topic-ranges":
+        if mins < 8:
+            return 4
+        if mins < 18:
+            return 8
+        return 12
     if mins < 5:
         return 4
     if mins < 15:
@@ -213,21 +305,43 @@ def make_composite_2x2(
     return True
 
 
+def _clear_shot_dirs(raw_dir: Path, comp_dir: Path, shots: Path) -> None:
+    """Remove previous tiles/composites so re-extract does not leave stale panels."""
+    for d in (raw_dir, comp_dir):
+        if d.is_dir():
+            for p in d.glob("*.png"):
+                try:
+                    p.unlink()
+                except OSError:
+                    pass
+        d.mkdir(parents=True, exist_ok=True)
+    # top-level convenience aliases of composites
+    for p in shots.glob("*.png"):
+        try:
+            p.unlink()
+        except OSError:
+            pass
+
+
 def extract_frames(
     video: Path,
     shots: Path,
     duration: float,
     count: int | None = None,
     chapters: list[dict] | None = None,
+    range_source: str = "chapters",
 ) -> None:
     """
-    Capture MANY frames per chapter, then build 2x2 composite images for NOTES.
+    Capture MANY frames per time range, then build 2x2 composite images for NOTES.
 
-    Policy (user requirement):
-      - Each chapter: 4 / 8 / 12 raw frames by length → 1 / 2 / 3 composites of 4
-      - No chapters: treat whole video as one range with duration-scaled frames
+    Policy:
+      - Prefer raw/topic-ranges.json (topic map) when present
+      - Else YouTube chapters / description timestamps
+      - Else synthetic ~6 min slices (never one "full" range for a long lecture)
+      - Each range: 4 / 8 / 12 raw frames by length → 1 / 2 / 3 composites of 4
       - Raw tiles: screenshots/raw/…
-      - Composites: screenshots/composites/chXX-panelN.png  (use these in NOTES)
+      - Composites: screenshots/composites/chXX-slug-panelN.png
+      - Re-extract wipes prior pngs so NOTES assignment is not mixed with stale panels
     """
     try:
         import cv2  # type: ignore
@@ -243,10 +357,10 @@ def extract_frames(
     shots.mkdir(parents=True, exist_ok=True)
     raw_dir = shots / "raw"
     comp_dir = shots / "composites"
-    raw_dir.mkdir(parents=True, exist_ok=True)
-    comp_dir.mkdir(parents=True, exist_ok=True)
+    _clear_shot_dirs(raw_dir, comp_dir, shots)
 
-    ranges = chapter_ranges(chapters, duration)
+    ranges, src = chapter_ranges(chapters, duration, source_label=range_source)
+    range_source = src
     # optional global cap via --frame-count (total raw tiles approx)
     global_cap = count
 
@@ -255,21 +369,22 @@ def extract_frames(
     raw_index = 0
 
     print(
-        f"frame plan: chapters={len(ranges)} duration={duration:.0f}s "
-        f"(multi-frame + 2x2 composites)"
+        f"frame plan: ranges={len(ranges)} source={range_source} "
+        f"duration={duration:.0f}s (multi-frame + 2x2 composites)"
     )
 
     for ci, (start, end, slug) in enumerate(ranges, 1):
         ch_dur = end - start
-        n = frames_per_chapter(ch_dur)
+        n = frames_per_chapter(ch_dur, range_source=range_source)
         if global_cap is not None:
-            # scale per-chapter share roughly by duration
+            # scale per-range share roughly by duration
             share = max(4, int(round(global_cap * (ch_dur / max(duration, 1.0)))))
             n = min(n, max(4, share - (share % 4) or 4))
             n = min(12, max(4, n))
         times = sample_times_in_range(start, end, n)
         chapter_paths: list[Path] = []
         chapter_labels: list[str] = []
+        tile_seconds: list[float] = []
         for sec in times:
             sec = max(0.0, min(float(sec), max(duration - 1.0, 0.0)))
             cap.set(cv2.CAP_PROP_POS_FRAMES, int(sec * fps))
@@ -284,6 +399,7 @@ def extract_frames(
             cv2.imwrite(str(path), frame)
             chapter_paths.append(path)
             chapter_labels.append(f"ch{ci} {mm:02d}:{ss:02d}")
+            tile_seconds.append(round(sec, 1))
             all_raw.append(
                 {
                     "file": f"raw/{fname}",
@@ -291,6 +407,8 @@ def extract_frames(
                     "chapter": ci,
                     "slug": slug,
                     "label": f"{mm:02d}:{ss:02d}",
+                    "range_start": round(start, 1),
+                    "range_end": round(end, 1),
                 }
             )
             print("raw", fname)
@@ -299,6 +417,7 @@ def extract_frames(
         for panel_i in range(0, len(chapter_paths), 4):
             chunk = chapter_paths[panel_i : panel_i + 4]
             labs = chapter_labels[panel_i : panel_i + 4]
+            secs = tile_seconds[panel_i : panel_i + 4]
             if not chunk:
                 continue
             panel_n = panel_i // 4 + 1
@@ -306,6 +425,8 @@ def extract_frames(
             comp_name = f"ch{ci:02d}-{slug}-panel{panel_n}of{n_panels}.png"
             comp_path = comp_dir / comp_name
             if make_composite_2x2(chunk, comp_path, labs):
+                t0 = secs[0] if secs else start
+                t1 = secs[-1] if secs else end
                 all_composites.append(
                     {
                         "file": f"composites/{comp_name}",
@@ -315,6 +436,11 @@ def extract_frames(
                         "panels_in_chapter": n_panels,
                         "tiles": [p.name for p in chunk],
                         "labels": labs,
+                        "tile_seconds": secs,
+                        "time_start": t0,
+                        "time_end": t1,
+                        "range_start": round(start, 1),
+                        "range_end": round(end, 1),
                     }
                 )
                 print("composite", comp_name)
@@ -323,32 +449,41 @@ def extract_frames(
 
     # also keep top-level convenience copies of composites for simple embeds
     for c in all_composites:
-        src = shots / c["file"]
-        if src.exists():
-            # short alias
+        src_path = shots / c["file"]
+        if src_path.exists():
             alias = shots / Path(c["file"]).name
-            if not alias.exists():
-                try:
-                    alias.write_bytes(src.read_bytes())
-                except OSError:
-                    pass
+            try:
+                alias.write_bytes(src_path.read_bytes())
+            except OSError:
+                pass
 
     manifest = {
         "duration_seconds": duration,
-        "policy": "per-chapter multi-frame → 2x2 composites (4 tiles each)",
-        "frames_per_chapter_rule": {
-            "<5min": 4,
-            "5-15min": 8,
-            ">=15min": 12,
-            "composites": "ceil(frames/4) panels per chapter",
+        "range_source": range_source,
+        "range_count": len(ranges),
+        "policy": (
+            "per-range multi-frame → 2x2 composites; "
+            "prefer topic-ranges.json; else chapters; else synthetic ~6min slices"
+        ),
+        "frames_per_range_rule": {
+            "synthetic": "4 frames (1 panel) per ~6min slice",
+            "topic-ranges": "4 / 8 / 12 by topic length",
+            "chapters": "<5min:4 · 5-15min:8 · >=15min:12",
+            "composites": "ceil(frames/4) panels per range",
         },
+        "ranges": [
+            {"index": i, "start": s, "end": e, "slug": slug}
+            for i, (s, e, slug) in enumerate(ranges, 1)
+        ],
         "raw_count": len(all_raw),
         "composite_count": len(all_composites),
         "raw": all_raw,
         "composites": all_composites,
         "notes_embed_hint": (
-            "In NOTES Board/screenshot prefer composites/*.png. "
-            "Long chapters have panel1, panel2, panel3 — embed 2–3 images."
+            "Assign each composite to ONE topic whose MM:SS overlaps "
+            "time_start–time_end (or range_start–range_end). "
+            "Never reuse the same composite path on multiple topics. "
+            "If composite_count < topic_count, write raw/topic-ranges.json and re-run --frames-only."
         ),
     }
     (shots / "manifest.json").write_text(
@@ -356,13 +491,17 @@ def extract_frames(
     )
     print(
         f"done frames: raw={len(all_raw)} composites={len(all_composites)} "
-        f"→ see screenshots/manifest.json"
+        f"source={range_source} → see screenshots/manifest.json"
     )
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--url", required=True)
+    ap.add_argument(
+        "--url",
+        default="",
+        help="YouTube URL (required unless --frames-only)",
+    )
     ap.add_argument("--out", required=True, help="Video package folder")
     ap.add_argument("--playlist-index", type=int, default=None)
     ap.add_argument("--download-video", action="store_true", help="Also download video for frames")
@@ -371,12 +510,13 @@ def main() -> None:
         "--frame-count",
         type=int,
         default=None,
-        help="Optional soft cap on total raw tiles (default: per-chapter 4/8/12)",
+        help="Optional soft cap on total raw tiles (default: per-range policy)",
     )
     ap.add_argument(
         "--frames-only",
         action="store_true",
-        help="Only (re)extract frames/composites from existing raw/lecture.*; skip yt-dlp download",
+        help="Only (re)extract frames/composites from existing raw/lecture.*; skip yt-dlp download. "
+        "Uses raw/topic-ranges.json if present, else chapters, else synthetic ~6min slices.",
     )
     args = ap.parse_args()
 
@@ -386,13 +526,13 @@ def main() -> None:
     raw.mkdir(parents=True, exist_ok=True)
 
     # Always target a single video (playlist URLs otherwise poison metadata/captions).
-    video_url = args.url.split("&")[0] if "watch?v=" in args.url else args.url
+    video_url = (args.url or "").split("&")[0] if args.url and "watch?v=" in args.url else (args.url or "")
 
     chapters: list[dict] = []
     meta: dict = {}
 
     if args.frames_only:
-        # Reuse local metadata / chapters / video
+        # Reuse local metadata / chapters / video; prefer topic-ranges.json when present
         meta_path = out / "metadata.json"
         if meta_path.exists():
             meta = json.loads(meta_path.read_text(encoding="utf-8"))
@@ -423,15 +563,20 @@ def main() -> None:
                 "--frames-only needs raw/lecture.* and duration in metadata.json/info.json"
             )
         if not args.no_frames:
+            range_list, range_src = load_frame_range_sources(out, chapters if chapters else None)
             extract_frames(
                 vids[0],
                 shots,
                 duration,
                 count=args.frame_count,
-                chapters=chapters if chapters else None,
+                chapters=range_list,
+                range_source=range_src,
             )
         print("done frames-only:", out)
         return
+
+    if not args.url:
+        raise SystemExit("--url is required unless --frames-only")
 
     # metadata JSON
     info_path = raw / "info.json"
@@ -552,12 +697,16 @@ def main() -> None:
         )
         vids = list(raw.glob("lecture*.mp4")) + list(raw.glob("lecture*.webm")) + list(raw.glob("lecture*.mkv"))
         if vids and not args.no_frames and meta.get("duration_seconds"):
+            range_list, range_src = load_frame_range_sources(
+                out, chapters if chapters else None
+            )
             extract_frames(
                 vids[0],
                 shots,
                 float(meta["duration_seconds"]),
                 count=args.frame_count,
-                chapters=chapters if chapters else None,
+                chapters=range_list,
+                range_source=range_src,
             )
 
     print("done:", out)

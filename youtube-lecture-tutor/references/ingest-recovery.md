@@ -47,9 +47,22 @@ Values: `E3` | `E2` | `E1` | `E0`.
 
 ### Frames / composites fail
 
-1. Re-run: `ingest_youtube.py … --frames-only` when `raw/lecture.*` exists.  
+1. Re-run: `ingest_youtube.py … --frames-only` when `raw/lecture.*` exists (URL optional).  
 2. If no video file → **E2**: Board slots use ASCII-only + “no content frame”.  
 3. Do not fake screenshot paths.
+
+### Too few panels / same composites reused on every topic
+
+**Symptom:** `manifest.json` has `composite_count` 2–3 and slugs like `full`, while NOTES has 6–10 topics reusing `panel1of3` / `panel2of3`.
+
+**Fix:**
+
+1. After the topic map exists, write `raw/topic-ranges.json` (one `{start_time, end_time, title}` per topic).  
+2. Re-run `--frames-only` (script prefers topic-ranges; else synthetic ~6 min slices; never one long “full” range).  
+3. Re-assign Boards: **unique path per topic** using `time_start`/`time_end` in the new manifest.  
+4. Do **not** keep recycling three whole-video panels.
+
+See `topic-planning.md` → Screenshots.
 
 ### yt-dlp exit code 1 after partial success
 
