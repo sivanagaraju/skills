@@ -638,10 +638,21 @@ def check_notes(
         ext_end = ext_start + 3 + next_h2.start() if next_h2 else len(text)
         ext_body = text[ext_start:ext_end]
         n_links = len(re.findall(r"\[.+?\]\(https?://", ext_body))
-        if not (2 <= n_links <= 6):
-            rep.warn(f"NOTES.md: {n_links} external references found; spec says 2–6")
+        # Package-level band (global-agent.md): 3–8 total, not per topic.
+        if not (3 <= n_links <= 8):
+            rep.warn(
+                f"NOTES.md: {n_links} external references found; "
+                "spec is 3–8 package total (not per topic) — global-agent.md"
+            )
+        # Soft: multi-topic lectures usually need more than the bare floor.
+        if n_topics and n_topics >= 6 and 0 < n_links < 4:
+            rep.warn(
+                f"NOTES.md: {n_topics} topics but only {n_links} external refs — "
+                "prefer ≥4 strong topic-mapped companions when sources exist "
+                "(still ≤8; do not pad with SEO)"
+            )
         # Quality smells: topic mapping / diversity
-        if n_links >= 2 and not re.search(
+        if n_links >= 3 and not re.search(
             r"topic|matches lecture|why it helps|how to use", ext_body, re.I
         ):
             rep.warn(

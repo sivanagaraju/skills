@@ -49,7 +49,7 @@ All files under `references/` remain part of the skill — staging is about *whe
 | PREREQS drafting | `prerequisites-template.md` |
 | Non-math Apply-it section | `production-scenarios.md` |
 | Quiz build | `quiz-spec.md` |
-| External links / HIL / confidence | `global-agent.md` |
+| External links / HIL / confidence | `global-agent.md` (band 3–8; deep research before each URL) |
 | Optional header connect snippet | `notes-connect-block.md` |
 
 **Prompt library origin:** rules adapted from `educative.io/src/gemini_youtube_analyzer_v6_0.py`  
@@ -90,7 +90,7 @@ Do not maintain or call removed aliases (`lecture-study-package`, `youtube-blog-
 11. **Faithful** to video; clean ASR; no invented theorems; Must-teach claims covered.  
 12. **No Vertex / project IDs** (prompt *rules* only from analyzer research).  
 13. Classify **content_type** for depth: math formulas / code extraction / UI paths (`scenarios.md`).  
-14. **Web search** → NOTES `## External references` (topic-mapped quality sources — `global-agent.md`).  
+14. **External references** — package total **3–8** topic-mapped links after deep research (`global-agent.md`; staged load when writing this section). Not 3–8 per topic. Never invent URLs.  
 15. **Apply it (scenarios)** when type is non-math (`production-scenarios.md`).  
 16. **Confidence** on every finished package **with claim coverage numbers**.  
 17. **HIL** only when plan+architecture exist and goal confidence is still low.  
@@ -223,7 +223,7 @@ Fixes automated gaps inspired by educative `evaluate_blog_completeness()`: topic
 - [ ] Topic count **4–10** (map + claims primary; duration guide soft); full timeline coverage  
 - [ ] Each topic has all six slots  
 - [ ] Formal topics link `./PREREQUISITES.md#…` from the map slot when needed  
-- [ ] External references (2–6 real links, each mapped to a lecture topic; not generic SEO/wiki dump)  
+- [ ] External references (**3–8** package total; each mapped to a topic; deep research; not SEO/wiki dump)  
 - [ ] Apply-it scenarios present **iff** content_type requires them  
 - [ ] metadata.json matches schema  
 - [ ] quiz Part A + Part B + anchors where useful + master-map question  

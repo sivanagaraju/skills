@@ -78,10 +78,13 @@ Exec Summary is the **architecture phase** of the document: reverse-engineer the
      e) ### Local picture  (ASCII relation + micro numbers; **required for board procedures**;
            “Notice: …”; diagrams-and-mermaid.md)
      f) ### Bridge  ← real leftover problem → next box (full sentences)
-5. ## External references  (2–6 real links from web_search — **quality rules in global-agent.md**)
+5. ## External references  (**3–8** real links for the **whole package** — not per topic)
+     - Full law: `global-agent.md` (load when writing this section)
+     - Deep research before each URL (multi-query + verify; never invent)
      - Each link maps to a **topic / map box** from THIS video  
      - Mix when possible: original/primary + university lecture/video + solid blog/interactive  
      - Prefer table: Resource | Matches lecture… | Why it helps  
+     - Prefer spread across hard topics; do not require one link per topic  
      - Fail if only generic Wikipedia dumps with no topic mapping  
 6. ## Apply it (scenarios)   ← ONLY if content_type requires it (production-scenarios.md)
 7. ## Sources
