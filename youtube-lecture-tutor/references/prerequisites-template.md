@@ -33,6 +33,19 @@ Before diving into the foundational pillars, use this reference table to decode 
 
 ---
 
+## 🌉 Curriculum & Sibling Course Prerequisite Bridges
+
+Before diving into the foundational pillars, review these key concepts from sibling course series and standalone mathematical foundations:
+
+| Assumed Concept | Primary Series Foundation | MathsTerms Deep-Dive | 1-Sentence Intuition Refresher |
+| :--- | :--- | :--- | :--- |
+| **IID Data Assumption** | [Lec 07: IID Assumption](../../Mathematical-foundation-ml/08-Lec07-IID-Assumption/NOTES.md) | [Probability Basics](../../MathsTerms/01-Primal-Analysis-and-Foundations/01-Probability_Basics_and_Axioms.md) | Enables factoring joint likelihood across training data points into simple products. |
+| **Distribution Estimation** | [Lec 08: Distribution Estimation](../../Mathematical-foundation-ml/09-Lec08-Distribution-Estimation/NOTES.md) | [Random Variables & Distributions](../../MathsTerms/04-Probability-and-Statistical-Estimation/01-Random_Variables_and_Distributions.md) | The paradigm shift from deterministic curve fitting $f(x) \approx y$ to density modeling $p_\theta(x) \approx p_{data}(x)$. |
+| **KL Divergence** | [Lec 12: KL Divergence](../../Mathematical-foundation-ml/13-Lec12-KL-Divergence/NOTES.md) | [KL Divergence](../../MathsTerms/05-Information-Theory-and-Divergences/01-KL_Divergence.md) | Measures the information penalty (in bits or nats) of using approximating distribution $Q$ instead of true distribution $P$. |
+| **Equivalence of MLE & KL** | [Lec 13: Minimization of KL](../../Mathematical-foundation-ml/14-Lec13-Minimization-of-KL/NOTES.md) | [MLE & Forward KL](../../MathsTerms/04-Probability-and-Statistical-Estimation/05-MLE.md) | Maximizing log-likelihood is mathematically identical to minimizing Forward KL divergence $\mathcal{D}_{KL}(p_{data} \parallel p_\theta)$. |
+
+---
+
 ## Pillar 1: Limits & Instantaneous Rate of Change
 
 <a id="p1-limits-derivatives"></a>

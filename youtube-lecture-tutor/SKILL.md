@@ -2,9 +2,9 @@
 name: youtube-lecture-tutor
 description: >
   Canonical skill for YouTube lecture study packages (math/ML/code/software/soft-skills):
-  6-pillar learning package (PREREQUISITES.md with 6-8 foundational pillars and phonetics,
-  NOTES.md with master blueprint, 4-10 topics with 5-point pedagogical bridge, zero-leap
-  derivations, contrastive Why X Not Y sections, workplace debugging postmortems,
+  7-pillar learning package (PREREQUISITES.md with 6-8 foundational pillars, phonetics, and curriculum bridge,
+  NOTES.md with master blueprint, 4-10 topics with 5-point pedagogical bridge, zero-leap derivations,
+  contrastive Why X Not Y sections, workplace debugging postmortems, references.md dedicated annotated reference hub,
   examples/*.py runnable simulations, glossary.md dictionary with spoken phonetics,
   formulae_sheet.md rapid revision, quiz.html dual quiz Part A/B, and dynamic MathsTerms/ links).
   Claim-mine before NOTES (default required). Writing quality mandatory (tutor-voice).
@@ -17,26 +17,28 @@ description: >
 **One skill. One package shape. Do not invent alternate layouts.**
 
 ```
-PREREQUISITES.md  →  NOTES.md  →  examples/*.py  →  glossary.md  →  formulae_sheet.md  →  quiz.html
+PREREQUISITES.md  →  NOTES.md  →  references.md  →  examples/*.py  →  glossary.md  →  formulae_sheet.md  →  quiz.html
 ```
 
-The 6-Pillar Production Study Package:
-1. `PREREQUISITES.md`: 6–8 foundational pillars, Rosetta Stone notation decoder with spoken English phonetics, concrete numbers, and `#pN` anchors.
-2. `NOTES.md`: Executive Summary with Unicode ASCII blueprint, Chalkboard Rosetta Stone, Topic Deep Dives (5-point pedagogical bridge), zero-leap derivations, contrastive "Why X, Not Y" analyses, 2 Workplace Debugging Scenarios, Centralized External References, and `quiz.html` anchors.
-3. `examples/*.py`: Fully self-contained, heavily commented, runnable Python simulations with numerical assertions (`torch.allclose`, `np.allclose`) proving lecture math and exiting cleanly with code 0.
-4. `glossary.md`: Master terminology glossary with formal definitions, plain-English software meanings, spoken English phonetic pronunciations, and dynamic `MathsTerms/` links.
-5. `formulae_sheet.md`: High-density rapid revision sheet with KaTeX display equations, input/output tensor shapes, mathematical guarantees, contrastive decision matrices, and hardware stability notes.
-6. `quiz.html`: Standalone interactive dual-part quiz (Part A: Prereqs, Part B: Notes) generated from `raw/questions.json`.
+The 7-Pillar Production Study Package:
+1. `PREREQUISITES.md`: 6–8 foundational pillars, Rosetta Stone notation decoder with spoken English phonetics, concrete numbers, `#pN` anchors, and Curriculum Prerequisite Bridge table to sibling courses (`Mathematical-foundation-ml`).
+2. `NOTES.md`: Executive Summary with Unicode ASCII blueprint, Chalkboard Rosetta Stone, Topic Deep Dives (5-point pedagogical bridge), zero-leap derivations, contrastive "Why X, Not Y" analyses, 2 Workplace Debugging Scenarios, clean callout to `references.md`, and `quiz.html` anchors.
+3. `references.md`: Authoritative, deeply annotated reference hub: Curriculum/sibling course bridges (`../../Mathematical-foundation-ml/`), seminal papers with arXiv links and "Why Read This", textbook chapter cross-references, industry implementation guides, and interactive visualizers.
+4. `examples/*.py`: Fully self-contained, heavily commented, runnable Python simulations with numerical assertions (`torch.allclose`, `np.allclose`) proving lecture math and exiting cleanly with code 0.
+5. `glossary.md`: Master terminology glossary with formal definitions, plain-English software meanings, spoken English phonetic pronunciations, and dynamic `MathsTerms/` links.
+6. `formulae_sheet.md`: High-density rapid revision sheet with KaTeX display equations, input/output tensor shapes, mathematical guarantees, contrastive decision matrices, and hardware stability notes.
+7. `quiz.html`: Standalone interactive dual-part quiz (Part A: Prereqs, Part B: Notes) generated from `raw/questions.json`.
 
 Study path for the student:
 
 ```
-warm-up (PREREQUISITES.md + Rosetta Stone phonetics)
+warm-up (PREREQUISITES.md + Rosetta Stone phonetics + curriculum bridge)
 → architecture Executive Summary (NOTES.md blueprint)
 → topics (each box on the map + zero-leap proofs + why X not Y)
 → runnable code verifications (examples/*.py)
 → rapid revision & definitions (glossary.md + formulae_sheet.md)
-→ external links → workplace debugging scenarios → quiz (Part A / Part B)
+→ extended study & citations (references.md)
+→ workplace debugging scenarios → quiz (Part A / Part B)
 ```
 
 ---
@@ -133,7 +135,7 @@ Do not maintain or call removed aliases (`lecture-study-package`, `youtube-blog-
 ```
 1. Goal check (series path, URL, playlist index)
 2. Ingest (metadata, captions, frames) → TRANSCRIPT.md, screenshots/, metadata.json  
-   Screenshots: multi-frame → **2×2 composites** per **time range** (priority: `raw/topic-ranges.json` → YouTube chapters → **synthetic ~6 min slices**). Never starve a long lecture to one “full” range with 3 panels. Use `composites/` + `manifest.json` times in Board slots (`topic-planning.md`). `--frames-only` re-extracts (wipes prior pngs); URL optional when video already on disk.
+   Screenshots: multi-frame → 2×2 composites per time range (priority: raw/topic-ranges.json → YouTube chapters → synthetic ~6 min slices). Use composites/ + manifest.json times in Board slots.
    Clean ASR duplicates when building timed captions (transcript-mining.md).
    On failure/partial success → ingest-recovery.md (evidence E3–E0; do not invent transcript).
 3. Classify content_type (scenarios.md)
@@ -167,23 +169,26 @@ Do not maintain or call removed aliases (`lecture-study-package`, `youtube-blog-
 10. ★ Write final Executive Summary & Workplace Debugging into NOTES
     - Executive Summary: architecture blueprint ASCII diagram, plain lead (job→method→fork), comparative matrices
     - 2 Workplace Debugging Scenarios (real-world postmortems: Problem → Root Cause → Debugging Steps → Python Code Fix)
-    - Centralized External References (15–25 curated, non-hallucinated citations)
-11. Author glossary.md (glossary-template.md)
+    - Conclude with clean callout delegating all external citations to `references.md`
+11. Author references.md (references-template.md)
+    - 5 standardized categories: Curriculum & Prerequisite Bridges (Mathematical-foundation-ml links), Seminal Papers (arXiv/NeurIPS), Textbooks & Video Courses, Industry Guides, and Interactive Visualizers
+    - Detailed annotations: "Why Read This" summaries, exact equations/sections cited, and verified relative paths
+12. Author glossary.md (glossary-template.md)
     - 6-column dictionary schema: Term / Notation | Formal Definition | Plain-English Software Meaning | Spoken English (Phonetics) | Real-World Analogy | Dedicated MathsTerm Link
     - Comprehensive categorization (Greek Symbols, Linear Algebra, Probability, ML/GenAI)
-12. Author formulae_sheet.md (formulae-sheet-template.md)
+13. Author formulae_sheet.md (formulae-sheet-template.md)
     - Master Equations Index (KaTeX display equations)
     - Input/Output Tensor Dimensionality Table (shapes, dimensions, semantic meaning)
     - Mathematical Guarantees & Invariants Table (convexity, bounds, failure modes)
     - Contrastive "Why X, Not Y" Quick Decision Table
     - Hardware Realities & Numerical Stability (float32, LogSumExp, memory)
-13. Author raw/questions.json & Generate quiz.html (quiz-spec.md)
+14. Author raw/questions.json & Generate quiz.html (quiz-spec.md)
     - Part A (Prereqs) + Part B (Notes), mixed answer keys, near-miss distractors
     - python scripts/generate_quiz.py --out <NN-slug>/quiz.html --title "Quiz · Lec XX" --questions <NN-slug>/raw/questions.json
-14. ★ Run Automated Quality Gate: validate_package.py
+15. ★ Run Automated Quality Gate: validate_package.py
     - python scripts/validate_package.py --dir <NN-slug> [--strict]
-    - Must exit 0 (verifies 6 pillars, code execution, phonetics, contrastive sections, MathsTerms links)
-15. Update series README & deliver Done message with confidence report
+    - Must exit 0 (verifies 7 pillars, code execution, phonetics, contrastive sections, references.md, MathsTerms links)
+16. Update series README & deliver Done message with confidence report
 ```
 
 ---
@@ -193,8 +198,9 @@ Do not maintain or call removed aliases (`lecture-study-package`, `youtube-blog-
 ```
 <series>/
   <NN-short-slug>/
-    PREREQUISITES.md           # 6-8 pillars + Rosetta Stone + Spoken Phonetics + #pN anchors
-    NOTES.md                   # Blueprint + Topics + Zero-Leap + Why X Not Y + Debugging
+    PREREQUISITES.md           # 6-8 pillars + Rosetta Stone + Spoken Phonetics + Curriculum Bridge
+    NOTES.md                   # Blueprint + Topics + Zero-Leap + Why X Not Y + Debugging (points to references.md)
+    references.md              # Annotated references hub (Curriculum bridges, papers, textbooks, visualizers)
     glossary.md                # 6-column dictionary + Spoken Phonetics + MathsTerms links
     formulae_sheet.md          # Equations + Tensor Shapes + Guarantees + Why X Not Y table
     examples/                  # Standalone runnable Python simulations with numerical assertions
@@ -285,9 +291,10 @@ python -m pytest scripts/test_validate_package.py -v
 ```
 
 Automated checks enforced by `validate_package.py`:
-- **6-Pillar Package Completeness:** Asserts presence and non-emptiness of `PREREQUISITES.md`, `NOTES.md`, `examples/*.py`, `glossary.md`, `formulae_sheet.md`, and `quiz.html` (softened to WARN only when `"package_status": "legacy"`).
+- **7-Pillar Package Completeness:** Asserts presence and non-emptiness of `PREREQUISITES.md`, `NOTES.md`, `references.md`, `examples/*.py`, `glossary.md`, `formulae_sheet.md`, and `quiz.html` (softened to WARN only when `"package_status": "legacy"`).
 - **Subprocess Code Execution:** Executes all scripts in `examples/*.py` using `sys.executable`, asserts clean termination with exit code 0 within timeout, and verifies `torch.allclose` / `np.allclose` assertions.
-- **Dynamic MathsTerms Relative Links:** Extracts all relative links to `../../MathsTerms/*.md` and verifies target files exist on disk.
+- **Dedicated references.md Gate:** Asserts `references.md` exists, contains mandatory categorized sections (Curriculum Bridges, Seminal Papers, Textbooks, Industry Guides, Visualizers), and verifies `NOTES.md` cleanly delegates to `references.md`.
+- **Dynamic MathsTerms & Curriculum Relative Links:** Extracts all relative links to `../../MathsTerms/*.md` and `../../Mathematical-foundation-ml/*` and verifies target files exist on disk.
 - **Glossary Schema:** Checks `glossary.md` for required 6 columns (`Term / Notation`, `Formal Definition`, `Plain-English Software Meaning`, `Spoken English (Phonetics)`).
 - **Formulae Sheet Schema:** Checks `formulae_sheet.md` for Master Equations Index, Input/Output Tensor Dimensionality, Mathematical Guarantees, and Contrastive Quick Table.
 - **Phonetic Pronunciations:** Verifies spoken English pronunciation entries for Greek letters and mathematical operators in `glossary.md` and `PREREQUISITES.md`.
@@ -302,10 +309,13 @@ Automated checks enforced by `validate_package.py`:
 - [ ] `validate_package.py --dir <package>` exits 0 with zero ERRORs.
 - [ ] Code execution verifier runs all `examples/*.py` with exit code 0.
 - [ ] All `../../MathsTerms/*.md` relative links resolve to existing files on disk.
+- [ ] All `../../Mathematical-foundation-ml/*` curriculum bridge links resolve to existing files on disk.
+- [ ] `references.md` exists and satisfies the 5-category annotated reference schema.
 
-### 6-Pillar Structure
-- [ ] `PREREQUISITES.md`: 6–8 foundational pillars, Rosetta Stone with spoken English phonetics, concrete numbers, runnable Python snippets, `#pN` anchors.
-- [ ] `NOTES.md`: Executive Summary architecture blueprint (Unicode ASCII), Chalkboard Rosetta Stone, 4–10 topic deep dives with 5-point pedagogical bridge, zero-leap derivations, contrastive "Why X, Not Y" analyses, 2 workplace debugging postmortems, 15–25 centralized external references.
+### 7-Pillar Structure
+- [ ] `PREREQUISITES.md`: 6–8 foundational pillars, Rosetta Stone with spoken English phonetics, concrete numbers, runnable Python snippets, `#pN` anchors, and Curriculum Prerequisite Bridge table.
+- [ ] `NOTES.md`: Executive Summary architecture blueprint (Unicode ASCII), Chalkboard Rosetta Stone, 4–10 topic deep dives with 5-point pedagogical bridge, zero-leap derivations, contrastive "Why X, Not Y" analyses, 2 workplace debugging postmortems, clean pointer to `references.md`.
+- [ ] `references.md`: Annotated reference hub (Curriculum & Prerequisite Bridges, Seminal Papers, Textbooks & Lectures, Industry Guides, Interactive Visualizers).
 - [ ] `examples/*.py`: Fully self-contained, CPU-runnable Python simulations with `torch.allclose` / `np.allclose` assertions, referenced in markdown.
 - [ ] `glossary.md`: 6-column terminology dictionary (`Term / Notation`, `Formal Definition`, `Plain-English Software Meaning`, `Spoken English (Phonetics)`, `Real-World Analogy`, `Dedicated MathsTerm Link`).
 - [ ] `formulae_sheet.md`: High-density rapid revision sheet (Master Equations, Tensor Dimensionality, Mathematical Guarantees, Contrastive Quick Table, Hardware Stability).

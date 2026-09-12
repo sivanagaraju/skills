@@ -25,6 +25,15 @@ import subprocess
 import sys
 from pathlib import Path
 
+if sys.platform == "win32":
+    try:
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        if hasattr(sys.stderr, "reconfigure"):
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 
 def run(cmd: list[str]) -> None:
     print("+", " ".join(cmd))
@@ -491,7 +500,7 @@ def extract_frames(
     )
     print(
         f"done frames: raw={len(all_raw)} composites={len(all_composites)} "
-        f"source={range_source} → see screenshots/manifest.json"
+        f"source={range_source} -> see screenshots/manifest.json"
     )
 
 
@@ -710,7 +719,7 @@ def main() -> None:
             )
 
     print("done:", out)
-    print("next: write PREREQUISITES.md, NOTES.md, quiz questions → generate_quiz.py")
+    print("next: write PREREQUISITES.md, NOTES.md, quiz questions -> generate_quiz.py")
 
 
 if __name__ == "__main__":

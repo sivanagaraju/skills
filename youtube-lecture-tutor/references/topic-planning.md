@@ -9,6 +9,9 @@ Claims = **every teaching unit in the transcript** for **completeness**.
 1. List teacher moves in order (problem → tools → payoffs → worldview shifts)
 2. Draw ONE master ASCII (whole video point)
 3. State worldview arc: "from ___ to ___" (required for math/theory)
+3b. ★ Prerequisite & Curriculum Audit (curriculum-bridge-contract.md):
+    - Identify assumed concepts from Mathematical-foundation-ml
+    - Cross-reference MathsTerms/ and flag any missing terms for creation
 4. Cluster into map boxes with MM:SS ranges (see topic count rules below)
 5. ★ Mine claims per time range (transcript-mining.md) — do not skip
 6. Assign screenshots by type priority (below)

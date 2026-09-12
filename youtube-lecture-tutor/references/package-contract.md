@@ -1,19 +1,20 @@
 # Package contract (folder only)
 
-## Required files (The 6-Pillar Learning Package)
+## Required files (The 7-Pillar Learning Package)
 
-Every finished lecture study package must be structured as a self-contained, 6-pillar learning suite:
+Every finished lecture study package must be structured as a self-contained, 7-pillar learning suite:
 
 ```
 NN-short-slug/
-  PREREQUISITES.md           # Pillar 1: 6–8 foundational pillars + Rosetta Stone notation table + phonetics + #pN anchors
-  NOTES.md                   # Pillar 2: Master architecture blueprint + topics + 5-point bridge + contrastive + debugging postmortems
-  examples/                  # Pillar 3: Standalone runnable Python simulations & mathematical verifications
+  PREREQUISITES.md           # Pillar 1: 6–8 foundational pillars + Rosetta Stone notation table + phonetics + curriculum bridge
+  NOTES.md                   # Pillar 2: Master architecture blueprint + topics + 5-point bridge + contrastive + debugging postmortems (delegates references to references.md)
+  references.md              # Pillar 3: Dedicated annotated reference hub (Curriculum bridges, seminal papers, textbooks, industry guides, visualizers)
+  examples/                  # Pillar 4: Standalone runnable Python simulations & mathematical verifications
     01_numerical_verification.py
     02_torch_autograd_simulation.py
-  glossary.md                # Pillar 4: 6-column dictionary + Spoken English phonetics + MathsTerms links
-  formulae_sheet.md          # Pillar 5: High-density rapid revision sheet (equations + tensor shapes + guarantees + contrastive matrix)
-  quiz.html                  # Pillar 6: Standalone interactive dual-part quiz (Part A = PREREQUISITES · Part B = NOTES)
+  glossary.md                # Pillar 5: 6-column dictionary + Spoken English phonetics + MathsTerms links
+  formulae_sheet.md          # Pillar 6: High-density rapid revision sheet (equations + tensor shapes + guarantees + contrastive matrix)
+  quiz.html                  # Pillar 7: Standalone interactive dual-part quiz (Part A = PREREQUISITES · Part B = NOTES)
   TRANSCRIPT.md              # Cleaned, speaker-aligned ASR transcript
   metadata.json              # Package metadata schema (content_type, topic counts, package_status)
   screenshots/
@@ -36,12 +37,13 @@ Agent-only completeness artifacts (`raw/claims/`, coverage checklist, **coverage
 
 ---
 
-## Roles of the 6 Student-Facing Pillars (do not blur)
+## Roles of the 7 Student-Facing Pillars (do not blur)
 
 | File | Primary Pedagogical Job | Anti-job (Forbidden) |
 | :--- | :--- | :--- |
-| **`PREREQUISITES.md`** | Unlock 6–8 foundational mathematical primitives and notation needed to read the master map with zero prior memory; includes Spoken English phonetics, concrete numbers, and runnable Python snippets. | Full lecture retelling; repeating topic proofs; or vague abstract summaries. |
-| **`NOTES.md`** | Master architecture blueprint (Unicode ASCII) + 4–10 topic deep dives with 5-point pedagogical bridge, zero-leap derivations, contrastive "Why X, Not Y" analyses, 2 workplace debugging postmortems, and centralized references. | Flat timeline essay without architecture map; slide-deck bullet notes; hand-waving proofs; or video recap. |
+| **`PREREQUISITES.md`** | Unlock 6–8 foundational mathematical primitives and notation needed to read the master map with zero prior memory; includes Spoken English phonetics, concrete numbers, and Curriculum Prerequisite Bridge table to sibling courses. | Full lecture retelling; repeating topic proofs; or vague abstract summaries. |
+| **`NOTES.md`** | Master architecture blueprint (Unicode ASCII) + 4–10 topic deep dives with 5-point pedagogical bridge, zero-leap derivations, contrastive "Why X, Not Y" analyses, and 2 workplace debugging postmortems. References section replaced with clean callout to `references.md`. | Flat timeline essay without architecture map; slide-deck bullet notes; hand-waving proofs; video recap; or dumping 50+ raw citations inline. |
+| **`references.md`** | Authoritative, curated, and annotated reference hub: Curriculum/sibling course bridges (`../../Mathematical-foundation-ml/`), seminal papers with arXiv links and "Why Read This", textbook chapter alignments, and interactive visualizers. | Unannotated raw URL lists; broken relative paths; or skipping prerequisite links. |
 | **`examples/*.py`** | Standalone, runnable Python simulations with numerical assertions (`torch.allclose`, `np.allclose`) proving lecture math and exiting cleanly with code 0. Deep-linked from PREREQUISITES and NOTES. | Pseudo-code; non-executable snippets; GPU-dependent scripts; unverified approximations; scripts exiting with non-zero codes. |
 | **`glossary.md`** | Master terminology glossary with formal definitions, plain-English meanings, spoken English phonetic pronunciations, and dynamic `MathsTerms/` links. | Unstructured list; missing phonetics; repeating full lecture text; informal definitions without formal notation. |
 | **`formulae_sheet.md`** | High-density rapid revision sheet with LaTeX equations, input/output tensor shapes, mathematical guarantees, contrastive decision matrices, and hardware stability notes. | Narrative essay; wordy derivations without tabular summary; omitting tensor shapes or failure modes. |

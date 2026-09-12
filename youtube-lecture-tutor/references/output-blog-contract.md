@@ -117,12 +117,9 @@ Exec Summary is the **architecture phase** of the document: reverse-engineer the
      2 real-world engineering postmortems:
      - Scenario 1: Numerical Instability / Vanishing Gradient / Shape Mismatch / NaN blowup
      - Scenario 2: Memory Out-of-Memory (OOM) / Computational Bottleneck / Sampling Degeneracy
-     Each scenario structured as: Problem → Root Cause Analysis → Debugging Steps → Python Code Fix.
-7. ## External references  (**15–25 curated links** organized by category)
-     - Category 1: Foundational & Seminal Papers (arXiv/IEEE/NeurIPS)
-     - Category 2: Authoritative Textbooks & University Courses (Goodfellow, Murphy, Boyd, Prathosh)
-     - Category 3: Industry & Production Implementation Guides (PyTorch docs, Hugging Face, Triton)
-     - Each link mapped to a topic/concept; zero broken or invented URLs.
+     7. ## References & Further Reading
+     Clean callout delegating full citations to `references.md`:
+     `For complete annotated research citations, foundational papers, textbook chapter cross-references, interactive visualizers, and sibling course prerequisite bridges (Mathematical-foundation-ml), see [references.md](./references.md).`
 8. ## Sources
 ```
 

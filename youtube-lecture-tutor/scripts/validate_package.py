@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -71,6 +72,18 @@ AI_SLOP_PHRASES = [
 ]
 # Single words: warn only when used as filler near meta prose (still soft).
 AI_SLOP_WORDS_SOFT = ["pivotal", "robust landscape", "ever-evolving"]
+
+# Derivation gap heuristics (WARN) — leaps that omit intermediate algebraic steps.
+DERIVATION_GAP_PATTERNS = [
+    r"\bit can easily be seen that\b",
+    r"\bit can easily be shown that\b",
+    r"\bit is trivial to see that\b",
+    r"\btrivially\b",
+    r"\bobviously\b",
+    r"\bas is well known\b",
+    r"\bleft as an exercise to the reader\b",
+    r"\bwithout loss of generality, it follows that\b",
+]
 
 # Exec Summary TED / negation lead (WARN) — first ~700 chars of exec body.
 EXEC_TED_LEAD_PATTERNS = [
@@ -136,13 +149,13 @@ class Report:
         if self.errors:
             print(f"\nERRORS ({len(self.errors)}) — fix before shipping:")
             for e in self.errors:
-                print(f"  ✗ {e}")
+                print(f"  [FAIL] {e}")
         if self.warns:
             print(f"\nWARNINGS ({len(self.warns)}) — advisory, human judgment call:")
             for w in self.warns:
-                print(f"  ! {w}")
+                print(f"  [WARN] {w}")
         if not self.errors and not self.warns:
-            print("\nAll automated checks passed. ✓")
+            print("\nAll automated checks passed. [PASS]")
         print()
         if self.errors:
             print("RESULT  FAIL")
@@ -228,6 +241,15 @@ def scan_ai_slop(text: str, where: str, rep: Report) -> None:
             rep.warn(f"{where}: soft AI-slop cue '{phrase}' — check tone")
 
 
+def scan_derivation_gaps(text: str, where: str, rep: Report) -> None:
+    for pat in DERIVATION_GAP_PATTERNS:
+        for m in re.finditer(pat, text, re.IGNORECASE):
+            rep.warn(
+                f"{where}: potential derivation leap '{m.group()}' "
+                f"— ensure all intermediate algebraic steps are shown"
+            )
+
+
 def scan_meta_lines(text: str, where: str, rep: Report) -> None:
     if re.search(r"^\s*(\*\*)?content_type\s*:", text, re.MULTILINE | re.IGNORECASE):
         rep.err(
@@ -290,6 +312,11 @@ def check_prerequisites(
     scan_forbidden_labels(text, "PREREQUISITES.md", rep)
     scan_ai_slop(text, "PREREQUISITES.md", rep)
     scan_meta_lines(text, "PREREQUISITES.md", rep)
+    scan_derivation_gaps(text, "PREREQUISITES.md", rep)
+
+    is_legacy = meta.get("package_status") == "legacy"
+    if not is_legacy and not re.search(r"Curriculum.*Bridge|Sibling.*Course.*Bridge|Prerequisite.*Bridge", text, re.IGNORECASE):
+        rep.warn("PREREQUISITES.md: missing Curriculum & Sibling Course Prerequisite Bridges section")
 
     wc = word_count(text)
     if "full lecture" in text.lower() or wc > 2500:
@@ -669,6 +696,12 @@ def check_notes(
     scan_forbidden_labels(text, "NOTES.md", rep)
     scan_ai_slop(text, "NOTES.md", rep)
     scan_meta_lines(text, "NOTES.md", rep)
+    scan_derivation_gaps(text, "NOTES.md", rep)
+
+    is_legacy = (metadata or {}).get("package_status") == "legacy"
+    if not is_legacy and not re.search(r"Why\s+\w+.*Not\s+\w+|Contrastive", text, re.IGNORECASE):
+        rep.warn("NOTES.md: missing contrastive 'Why X, Not Y' analysis in topic deep dives")
+
     mermaid_count = scan_mermaid(text, "NOTES.md", rep)
     print(f"OK  mermaid blocks: {mermaid_count}")
     if mermaid_count > 2:
@@ -677,26 +710,29 @@ def check_notes(
             f"(0–2 unless pure systems design)"
         )
 
-    if "## External references" in text:
-        ext_start = text.index("## External references")
+    has_ref_section = "## References" in text or "## External references" in text
+    points_to_ref_file = bool(re.search(r"\[references\.md\]\(\./references\.md\)|references\.md", text, re.I))
+
+    if points_to_ref_file:
+        print("OK  NOTES.md references section delegates to references.md")
+    elif has_ref_section:
+        ext_key = "## External references" if "## External references" in text else "## References"
+        ext_start = text.index(ext_key)
         next_h2 = re.search(r"^## ", text[ext_start + 3 :], re.MULTILINE)
         ext_end = ext_start + 3 + next_h2.start() if next_h2 else len(text)
         ext_body = text[ext_start:ext_end]
         n_links = len(re.findall(r"\[.+?\]\(https?://", ext_body))
-        # Package-level band (global-agent.md): 3–8 total, not per topic.
         if not (3 <= n_links <= 8):
             rep.warn(
                 f"NOTES.md: {n_links} external references found; "
-                "spec is 3–8 package total (not per topic) — global-agent.md"
+                "prefer delegating to dedicated references.md or keeping 3–8 links — global-agent.md"
             )
-        # Soft: multi-topic lectures usually need more than the bare floor.
         if n_topics and n_topics >= 6 and 0 < n_links < 4:
             rep.warn(
                 f"NOTES.md: {n_topics} topics but only {n_links} external refs — "
                 "prefer ≥4 strong topic-mapped companions when sources exist "
                 "(still ≤8; do not pad with SEO)"
             )
-        # Quality smells: topic mapping / diversity
         if n_links >= 3 and not re.search(
             r"topic|matches lecture|why it helps|how to use", ext_body, re.I
         ):
@@ -723,7 +759,7 @@ def check_notes(
                 "that map to lecture topics (global-agent.md)"
             )
     else:
-        rep.warn("NOTES.md: no '## External references' section found")
+        rep.warn("NOTES.md: no '## References' or '## External references' section found")
 
     img_count = len(re.findall(r"!\[.*?\]\(.*?\)", text))
     if img_count == 0:
@@ -1292,6 +1328,198 @@ def check_quiz_html(path: Path, rep: Report) -> None:
         rep.warn("quiz.html: Part A/B banners not found")
 
 
+def check_references_md(pkg: Path, rep: Report, metadata: dict) -> None:
+    ref_path = pkg / "references.md"
+    is_legacy = metadata.get("package_status") == "legacy"
+    if not ref_path.exists():
+        if is_legacy:
+            rep.warn("references.md: missing dedicated references hub (legacy package)")
+        else:
+            rep.err("references.md: missing mandatory 7th pillar references.md")
+        return
+
+    text = ref_path.read_text(encoding="utf-8", errors="replace")
+    if len(text.strip()) < 100:
+        rep.err("references.md: file is empty or too short (<100 characters)")
+        return
+
+    scan_forbidden_labels(text, "references.md", rep)
+    scan_ai_slop(text, "references.md", rep)
+
+    expected_categories = [
+        ("Curriculum & Prerequisite Bridges", r"Curriculum|Prerequisite Bridge|Course Bridge"),
+        ("Foundational & Seminal Papers", r"Seminal|Foundational|Research Papers|Papers"),
+        ("Textbooks & Video Lectures", r"Textbook|Course Lectures|Video Lectures"),
+        ("Industry & Implementation Guides", r"Industry|Implementation|Engineering Guide|Framework"),
+        ("Interactive Visualizers", r"Visualizer|Interactive|Simulation|Demo"),
+    ]
+    for cat_name, cat_pat in expected_categories:
+        if not re.search(cat_pat, text, re.IGNORECASE):
+            rep.warn(f"references.md: recommended section '{cat_name}' not clearly detected")
+
+    links = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", text)
+    if len(links) < 3:
+        rep.warn(f"references.md: only {len(links)} links found — expected at least 3 curated links")
+    else:
+        print(f"OK  references.md: {len(links)} curated links and reference bridges detected")
+
+
+def check_notes_references_delegation(notes_path: Path, rep: Report) -> None:
+    if not notes_path.exists():
+        return
+    text = notes_path.read_text(encoding="utf-8", errors="replace")
+    if not re.search(r"references\.md", text, re.IGNORECASE):
+        rep.warn("NOTES.md: should contain a pointer/callout to [references.md](./references.md)")
+    raw_urls = re.findall(r"https?://[^\s)]+", text)
+    if len(raw_urls) > 15:
+        rep.warn(f"NOTES.md: contains {len(raw_urls)} inline URLs — delegate detailed citations to references.md to keep notes clean")
+
+
+def check_relative_links(pkg: Path, rep: Report) -> None:
+    md_files = [
+        pkg / "PREREQUISITES.md",
+        pkg / "NOTES.md",
+        pkg / "references.md",
+        pkg / "glossary.md",
+        pkg / "formulae_sheet.md",
+    ]
+    mathsterms_checked = 0
+    curriculum_checked = 0
+
+    for md in md_files:
+        if not md.exists():
+            continue
+        text = md.read_text(encoding="utf-8", errors="replace")
+        links = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", text)
+        for label, target in links:
+            clean_target = target.split("#")[0].strip()
+            if clean_target.startswith("http"):
+                continue
+
+            if "MathsTerms" in target:
+                resolved = (pkg / clean_target).resolve()
+                if not resolved.exists():
+                    rep.err(f"{md.name}: broken MathsTerms relative link '{target}' -> '{resolved}' does not exist on disk")
+                else:
+                    mathsterms_checked += 1
+
+            if "Mathematical-foundation-ml" in target:
+                resolved = (pkg / clean_target).resolve()
+                if not resolved.exists():
+                    rep.err(f"{md.name}: broken curriculum bridge link '{target}' -> '{resolved}' does not exist on disk")
+                else:
+                    curriculum_checked += 1
+
+    if mathsterms_checked > 0:
+        print(f"OK  verified {mathsterms_checked} MathsTerms relative link(s) on disk")
+    if curriculum_checked > 0:
+        print(f"OK  verified {curriculum_checked} Mathematical-foundation-ml curriculum bridge link(s) on disk")
+
+
+def check_examples_scripts(pkg: Path, rep: Report, metadata: dict, skip_exec: bool = False, timeout_sec: int = 30) -> None:
+    examples_dir = pkg / "examples"
+    is_legacy = metadata.get("package_status") == "legacy"
+
+    if not examples_dir.exists() or not examples_dir.is_dir():
+        if is_legacy:
+            rep.warn("examples/: directory not found (legacy package)")
+        else:
+            rep.err("examples/: missing mandatory examples/ directory with runnable .py scripts")
+        return
+
+    py_files = sorted(examples_dir.glob("*.py"))
+    if not py_files:
+        if is_legacy:
+            rep.warn("examples/: no python simulation scripts found (legacy package)")
+        else:
+            rep.err("examples/: missing runnable .py simulation scripts under examples/")
+        return
+
+    print(f"OK  examples/: found {len(py_files)} Python simulation script(s)")
+
+    if skip_exec:
+        print("INFO  examples/: skipping script execution (--skip-exec active)")
+        return
+
+    for py_file in py_files:
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-B", str(py_file)],
+                capture_output=True,
+                text=True,
+                timeout=timeout_sec,
+                cwd=str(examples_dir),
+            )
+            if proc.returncode != 0:
+                snippet = (proc.stderr or proc.stdout)[:300].strip()
+                rep.err(f"examples/{py_file.name}: execution failed (code {proc.returncode}): {snippet}")
+            else:
+                print(f"OK  examples/{py_file.name} executed cleanly (exit code 0)")
+        except subprocess.TimeoutExpired:
+            rep.err(f"examples/{py_file.name}: timed out after {timeout_sec}s")
+        except Exception as ex:
+            rep.err(f"examples/{py_file.name}: execution error: {ex}")
+
+
+def check_glossary_md(pkg: Path, rep: Report, metadata: dict) -> None:
+    glossary_path = pkg / "glossary.md"
+    is_legacy = metadata.get("package_status") == "legacy"
+
+    if not glossary_path.exists():
+        if is_legacy:
+            rep.warn("glossary.md: missing terminology dictionary (legacy package)")
+        else:
+            rep.err("glossary.md: missing mandatory terminology dictionary glossary.md")
+        return
+
+    text = glossary_path.read_text(encoding="utf-8", errors="replace")
+    if len(text.strip()) < 100:
+        rep.err("glossary.md: file is empty or too short (<100 characters)")
+        return
+
+    scan_forbidden_labels(text, "glossary.md", rep)
+    scan_ai_slop(text, "glossary.md", rep)
+
+    if "|" not in text:
+        rep.err("glossary.md: missing markdown table dictionary")
+    if not re.search(r"phonetic|spoken", text, re.IGNORECASE):
+        rep.warn("glossary.md: missing 'Spoken English (Phonetics)' column in glossary table")
+    else:
+        print("OK  glossary.md: terminology table and spoken phonetics verified")
+
+
+def check_formulae_sheet_md(pkg: Path, rep: Report, metadata: dict) -> None:
+    sheet_path = pkg / "formulae_sheet.md"
+    is_legacy = metadata.get("package_status") == "legacy"
+
+    if not sheet_path.exists():
+        if is_legacy:
+            rep.warn("formulae_sheet.md: missing rapid revision formulae sheet (legacy package)")
+        else:
+            rep.err("formulae_sheet.md: missing mandatory formulae_sheet.md")
+        return
+
+    text = sheet_path.read_text(encoding="utf-8", errors="replace")
+    if len(text.strip()) < 100:
+        rep.err("formulae_sheet.md: file is empty or too short (<100 characters)")
+        return
+
+    scan_forbidden_labels(text, "formulae_sheet.md", rep)
+    scan_ai_slop(text, "formulae_sheet.md", rep)
+
+    sections = [
+        ("Equations Index", r"Equation|Formula"),
+        ("Tensor Dimensionality", r"Tensor|Shape|Dimension"),
+        ("Guarantees & Invariants", r"Guarantee|Invariant|Property"),
+        ("Contrastive Decision Table", r"Contrastive|Why X|Decision"),
+    ]
+    for sec_name, sec_pat in sections:
+        if not re.search(sec_pat, text, re.IGNORECASE):
+            rep.warn(f"formulae_sheet.md: recommended section '{sec_name}' not clearly detected")
+
+    print("OK  formulae_sheet.md: core rapid revision sections verified")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(
         description="Validate a youtube-lecture-tutor package"
@@ -1305,6 +1533,17 @@ def main() -> None:
         "--strict",
         action="store_true",
         help="Treat warnings as failures",
+    )
+    ap.add_argument(
+        "--skip-exec",
+        action="store_true",
+        help="Skip executing Python scripts under examples/",
+    )
+    ap.add_argument(
+        "--exec-timeout",
+        type=int,
+        default=30,
+        help="Execution timeout in seconds for example scripts (default: 30)",
     )
     args = ap.parse_args()
     d = Path(args.dir)
@@ -1328,6 +1567,14 @@ def main() -> None:
     )
     check_scenarios_gate(d / "NOTES.md", metadata, rep)
     check_quiz_html(d / "quiz.html", rep)
+
+    # 7-Pillar study package checks
+    check_references_md(d, rep, metadata)
+    check_notes_references_delegation(d / "NOTES.md", rep)
+    check_glossary_md(d, rep, metadata)
+    check_formulae_sheet_md(d, rep, metadata)
+    check_examples_scripts(d, rep, metadata, skip_exec=args.skip_exec, timeout_sec=args.exec_timeout)
+    check_relative_links(d, rep)
 
     if metadata.get("topic_count") and n_topics and metadata["topic_count"] != n_topics:
         rep.warn(
